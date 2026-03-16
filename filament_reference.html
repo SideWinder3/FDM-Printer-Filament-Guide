@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>3D Filament Reference</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:ital,wght@0,400;0,700;1,400&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,300&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #00AE42;
+  --orange: #EA5E1A;
+  --navy: #122C34;
+  --navy-mid: #1a3d4a;
+  --navy-light: #1f4d5e;
+  --bg: #0a1a20;
+  --surface: #0f2530;
+  --surface2: #152d38;
+  --surface3: #1a3540;
+  --border: rgba(0,174,66,0.15);
+  --border-bright: rgba(0,174,66,0.4);
+  --text: #e8f4f0;
+  --text-muted: #7aada0;
+  --text-dim: #3d7068;
+  --mono: 'Space Mono', monospace;
+  --sans: 'DM Sans', sans-serif;
+  --radius: 6px;
+  --radius-lg: 12px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+}
+
+/* ── GRID NOISE TEXTURE ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.03'/%3E%3C/svg%3E");
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(10, 26, 32, 0.95);
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.logo {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--green);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.logo span {
+  color: var(--orange);
+}
+
+.search-wrap {
+  flex: 1;
+  max-width: 420px;
+  position: relative;
+}
+
+.search-wrap::before {
+  content: '⌕';
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-dim);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+#search {
+  width: 100%;
+  background: var(--surface2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 7px 12px 7px 34px;
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+#search:focus { border-color: var(--border-bright); }
+#search::placeholder { color: var(--text-dim); }
+
+.header-meta {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+  margin-left: auto;
+}
+
+#count-display {
+  color: var(--green);
+  font-weight: 700;
+}
+
+/* ── LAYOUT ── */
+.layout {
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  min-height: calc(100vh - 56px);
+  position: relative;
+  z-index: 1;
+}
+
+/* ── SIDEBAR ── */
+aside {
+  border-right: 1px solid var(--border);
+  padding: 20px 0;
+  position: sticky;
+  top: 56px;
+  height: calc(100vh - 56px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface3) transparent;
+}
+
+.sidebar-section {
+  margin-bottom: 24px;
+}
+
+.sidebar-label {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 0 16px;
+  margin-bottom: 6px;
+}
+
+.cat-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 7px 16px;
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  font-family: var(--sans);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: all 0.15s;
+  border-left: 2px solid transparent;
+}
+
+.cat-btn:hover { color: var(--text); background: var(--surface2); }
+
+.cat-btn.active {
+  color: var(--green);
+  border-left-color: var(--green);
+  background: rgba(0,174,66,0.06);
+}
+
+.cat-icon {
+  font-size: 11px;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.cat-btn.active .cat-icon { opacity: 1; color: var(--green); }
+
+.cat-count {
+  margin-left: auto;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+.cat-btn.active .cat-count { color: var(--green); }
+
+/* Diff filters */
+.diff-filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0 16px;
+}
+
+.diff-btn {
+  padding: 3px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: none;
+  font-family: var(--mono);
+  font-size: 10px;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: var(--text-dim);
+}
+
+.diff-btn:hover { border-color: var(--border-bright); color: var(--text-muted); }
+
+.diff-btn.active.beginner { background: rgba(0,174,66,0.15); border-color: var(--green); color: var(--green); }
+.diff-btn.active.intermediate { background: rgba(234,94,26,0.15); border-color: var(--orange); color: var(--orange); }
+.diff-btn.active.advanced { background: rgba(220,120,20,0.12); border-color: #dc7814; color: #dc7814; }
+.diff-btn.active.expert { background: rgba(200,50,50,0.12); border-color: #c43232; color: #c43232; }
+
+/* ── MAIN CONTENT ── */
+main {
+  padding: 24px;
+  min-width: 0;
+}
+
+.section-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--green);
+}
+
+.section-count {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-dim);
+}
+
+/* ── CARD GRID ── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 10px;
+  margin-bottom: 40px;
+}
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.18s;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: transparent;
+  transition: background 0.18s;
+}
+
+.card:hover {
+  border-color: var(--border-bright);
+  background: var(--surface2);
+  transform: translateY(-1px);
+}
+
+.card:hover::before { background: var(--green); }
+.card.active { border-color: var(--green); background: var(--surface2); }
+.card.active::before { background: var(--green); }
+
+.card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.card-name {
+  font-family: var(--mono);
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text);
+  line-height: 1.3;
+}
+
+.card-badges {
+  display: flex;
+  gap: 4px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.badge {
+  font-family: var(--mono);
+  font-size: 9px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.badge-beginner { background: rgba(0,174,66,0.15); color: #00AE42; }
+.badge-intermediate { background: rgba(234,94,26,0.15); color: #EA5E1A; }
+.badge-advanced { background: rgba(220,120,20,0.15); color: #dc7814; }
+.badge-expert { background: rgba(200,50,50,0.15); color: #e04040; }
+
+.card-full {
+  font-size: 11px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  font-style: italic;
+}
+
+.card-temp {
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--orange);
+  margin-bottom: 6px;
+}
+
+.card-desc {
+  font-size: 11px;
+  color: var(--text-muted);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 8px;
+}
+
+.tag {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--surface3);
+  color: var(--text-dim);
+  border: 1px solid rgba(255,255,255,0.04);
+}
+
+/* ── DETAIL PANEL ── */
+#detail-panel {
+  position: fixed;
+  right: -540px;
+  top: 56px;
+  width: 520px;
+  height: calc(100vh - 56px);
+  background: var(--navy);
+  border-left: 1px solid var(--border-bright);
+  z-index: 200;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--surface3) transparent;
+  transition: right 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 0;
+}
+
+#detail-panel.open { right: 0; }
+
+.detail-header {
+  position: sticky;
+  top: 0;
+  background: var(--navy);
+  border-bottom: 1px solid var(--border);
+  padding: 16px 20px;
+  z-index: 10;
+}
+
+.detail-close {
+  position: absolute;
+  top: 14px;
+  right: 16px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: 28px;
+  height: 28px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s;
+}
+
+.detail-close:hover { background: var(--surface2); color: var(--text); border-color: var(--border-bright); }
+
+.detail-name {
+  font-family: var(--mono);
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--green);
+  line-height: 1.2;
+  margin-bottom: 4px;
+  padding-right: 36px;
+}
+
+.detail-fullname {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-bottom: 10px;
+}
+
+.detail-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.meta-pill {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  background: var(--surface3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 3px 8px;
+  font-family: var(--mono);
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.meta-pill-label {
+  color: var(--text-dim);
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+
+.meta-pill.temp .meta-pill-val { color: var(--orange); }
+.meta-pill.diff .meta-pill-val { color: var(--green); }
+
+.detail-body {
+  padding: 20px;
+}
+
+.detail-section {
+  margin-bottom: 22px;
+}
+
+.detail-section-title {
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--orange);
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.detail-section-title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.detail-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.detail-list li {
+  display: flex;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--text-muted);
+  line-height: 1.55;
+}
+
+.detail-list li::before {
+  content: '▸';
+  color: var(--green);
+  flex-shrink: 0;
+  margin-top: 1px;
+  font-size: 10px;
+}
+
+.detail-list.tips li::before { color: var(--orange); }
+.detail-list.uses li::before { color: var(--text-dim); content: '→'; }
+
+.use-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.use-tag {
+  background: rgba(0,174,66,0.08);
+  border: 1px solid rgba(0,174,66,0.2);
+  color: var(--green);
+  font-size: 11px;
+  padding: 3px 8px;
+  border-radius: 4px;
+}
+
+/* ── EMPTY STATE ── */
+.empty {
+  grid-column: 1/-1;
+  padding: 60px 20px;
+  text-align: center;
+  color: var(--text-dim);
+  font-family: var(--mono);
+  font-size: 12px;
+}
+
+.empty span { color: var(--green); }
+
+/* ── OVERLAY ── */
+#overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 150;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s;
+}
+
+#overlay.show { opacity: 1; pointer-events: all; }
+
+/* ── CATEGORY GROUP LABEL ── */
+.cat-group-label {
+  grid-column: 1/-1;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+  padding: 8px 0 4px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cat-group-label::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ── SCROLLBAR ── */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--surface3); border-radius: 3px; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 768px) {
+  .layout { grid-template-columns: 1fr; }
+  aside { display: none; }
+  #detail-panel { width: 100%; right: -100%; }
+  #detail-panel.open { right: 0; }
+}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">3D<span>FIL</span> / Reference</div>
+  <div class="search-wrap">
+    <input type="text" id="search" placeholder="Search filaments, materials, uses..." autocomplete="off" spellcheck="false">
+  </div>
+  <div class="header-meta"><span id="count-display">108</span> filaments</div>
+</header>
+
+<div class="layout">
+  <aside id="sidebar">
+    <div class="sidebar-section">
+      <div class="sidebar-label">Category</div>
+      <button class="cat-btn active" data-cat="all">
+        <span class="cat-icon">◉</span>
+        All Filaments
+        <span class="cat-count" id="cnt-all">108</span>
+      </button>
+      
+      <button class="cat-btn" data-cat="Standard">
+        <span class="cat-icon">◈</span>
+        Standard
+        <span class="cat-count" id="cnt-Standard">0</span>
+      </button>
+      <button class="cat-btn" data-cat="Engineering">
+        <span class="cat-icon">⬡</span>
+        Engineering
+        <span class="cat-count" id="cnt-Engineering">0</span>
+      </button>
+      <button class="cat-btn" data-cat="Flexible">
+        <span class="cat-icon">◎</span>
+        Flexible
+        <span class="cat-count" id="cnt-Flexible">0</span>
+      </button>
+      <button class="cat-btn" data-cat="Composites">
+        <span class="cat-icon">◆</span>
+        Composites
+        <span class="cat-count" id="cnt-Composites">0</span>
+      </button>
+      <button class="cat-btn" data-cat="Support Materials">
+        <span class="cat-icon">◇</span>
+        Support Materials
+        <span class="cat-count" id="cnt-Support_Materials">0</span>
+      </button>
+      <button class="cat-btn" data-cat="High-Performance">
+        <span class="cat-icon">▲</span>
+        High-Performance
+        <span class="cat-count" id="cnt-High_Performance">0</span>
+      </button>
+      <button class="cat-btn" data-cat="Specialty">
+        <span class="cat-icon">★</span>
+        Specialty
+        <span class="cat-count" id="cnt-Specialty">0</span>
+      </button>
+      <button class="cat-btn" data-cat="Eco / Bio-based">
+        <span class="cat-icon">✿</span>
+        Eco / Bio-based
+        <span class="cat-count" id="cnt-Eco___Bio_based">0</span>
+      </button>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Difficulty</div>
+      <div class="diff-filters">
+        <button class="diff-btn active beginner" data-diff="Beginner">Beginner</button>
+        <button class="diff-btn active intermediate" data-diff="Intermediate">Intermediate</button>
+        <button class="diff-btn active advanced" data-diff="Advanced">Advanced</button>
+        <button class="diff-btn active expert" data-diff="Expert">Expert</button>
+      </div>
+    </div>
+  </aside>
+
+  <main id="main-content">
+    <div id="results"></div>
+  </main>
+</div>
+
+<div id="overlay"></div>
+
+<div id="detail-panel">
+  <div class="detail-header">
+    <button class="detail-close" id="detail-close">✕</button>
+    <div class="detail-name" id="dp-name"></div>
+    <div class="detail-fullname" id="dp-fullname"></div>
+    <div class="detail-meta-row" id="dp-meta"></div>
+  </div>
+  <div class="detail-body" id="dp-body"></div>
+</div>
+
+<script>
+const FILAMENTS = [{"name":"PLA","fullName":"Polylactic Acid","category":"Standard","difficulty":"Beginner","tempNozzle":"180–230°C","tempBed":"0–60°C","tempChamber":"Not required","properties":["Derived from plant starch (corn, sugarcane) — biodegradable under industrial composting","Heat resistance: ~60°C before softening — not suitable for heat-exposed parts","Tensile strength: ~50–65 MPa","Stiff but brittle — snaps under sharp impact rather than bending","Excellent detail reproduction and surface finish","Low shrinkage — minimal warping on most surfaces"],"settings":["Nozzle: 190–220°C (start at 200°C, adjust for brand)","Bed: 0–60°C — PLA sticks well even without a heated bed; 50–60°C improves first layer on smooth surfaces","Cooling: High — 100% part cooling fan recommended after first few layers","Speed: 40–80mm/s reliably; up to 150mm/s+ with high-speed formulations","Retraction: 0.5–2mm for direct drive; 4–7mm for Bowden","No enclosure needed — open-air printing is fine"],"tips":["First layer adhesion is usually excellent on PEI, glass with glue stick, or textured plates","If stringing occurs, increase retraction slightly and lower temp by 5°C","PLA can jam in a Bowden tube if the cold zone heats up ('heat creep') — ensure good cooling on the heat break","Anneal printed PLA parts in an oven at 60–70°C for 30–60 minutes to significantly improve heat resistance; parts may warp slightly during annealing","Avoid leaving PLA parts in a hot car — dashboard temps easily exceed PLA's softening point","Humidity causes PLA to absorb moisture, leading to popping sounds and rough surface finish; dry at 45°C for 4–6 hours if needed","Post-processing: sands and paints easily; bonds well with super glue or epoxy"],"uses":["Prototypes, concept models, and visual mockups","RC aircraft parts (especially combined with LW-PLA variants)","Decorative objects, figurines, and display models","Educational models and props","Low-stress mechanical parts in room-temperature environments","Anything that doesn't need heat resistance or high impact strength"]},{"name":"PLA+","fullName":"PLA Plus","category":"Standard","difficulty":"Beginner","tempNozzle":"190–230°C","tempBed":"0–60°C","tempChamber":"Not required","properties":["Modified PLA with impact modifiers and toughening additives","Noticeably less brittle than standard PLA — bends before snapping","Improved layer bonding compared to standard PLA","Marginally better heat resistance than standard PLA (~65°C)","Similar printability to standard PLA — no learning curve","Slightly more flexible surface feel"],"settings":["Nozzle: 200–230°C (typically 5–10°C higher than standard PLA for the same brand)","Bed: 50–60°C recommended for better adhesion","Cooling: High — same as standard PLA","Speed: 40–80mm/s; most PLA+ handles similar speeds to PLA","Retraction: Same as PLA — 0.5–2mm direct drive, 4–7mm Bowden"],"tips":["Don't assume PLA+ is interchangeable with PLA temp-wise — run a temp tower if switching brands","The toughening additives can cause slightly more stringing; increase retraction distance by 0.5mm if needed","Post-processing is slightly harder to sand than standard PLA due to increased toughness","Generally the better default choice over standard PLA for any functional part"],"uses":["Functional parts that need more toughness than standard PLA","Phone cases and consumer product prototypes","Snap-fit assemblies and clips","Light-duty mechanical parts","Parts that will be handled frequently and need to resist minor impacts"]},{"name":"Rapid / HS PLA","fullName":"High-Speed PLA","category":"Standard","difficulty":"Beginner","tempNozzle":"200–260°C","tempBed":"35–60°C","tempChamber":"Not required","properties":["Specially formulated PLA with lower viscosity at high temperatures for rapid flow","Compatible with high-flow nozzles (CHT, Volcano, etc.)","Maintains good surface quality at speeds that would cause under-extrusion in standard PLA","Similar mechanical properties to standard PLA","Available from Bambu, eSUN, Elegoo, Polymaker, and others under various brand names"],"settings":["Nozzle: 220–260°C — higher than standard PLA to reduce viscosity at speed","Bed: 35–60°C","Speed: 200–600mm/s on capable printers (Bambu, Voron, etc.)","Cooling: Maximum available — high-speed printing generates more heat in the part","Acceleration: Works best with input shaping enabled to reduce ringing at high speeds"],"tips":["Useless on a standard slow printer — the formulation benefits only appear at high speeds with high-flow hardware","On a slow printer, treat it like standard PLA at normal settings","The higher nozzle temp at speed means you need a quality heat break to prevent heat creep","Zack Freedman rated this S-tier — one of the best everyday upgrades if you have a capable printer"],"uses":["High-volume printing where speed matters","Rapid prototyping with quick turnaround","Production runs of consumer parts","Any standard PLA use case where you want to print 2–4x faster"]},{"name":"Tough PLA","fullName":"Tough / Pro PLA","category":"Standard","difficulty":"Beginner","tempNozzle":"200–235°C","tempBed":"50–65°C","tempChamber":"Not required","properties":["Impact-modified PLA with significantly improved toughness over PLA+","Absorbs impact energy rather than shattering","Good layer bonding and interlayer strength","Similar heat resistance to PLA (~65°C) — not a high-temp material","Prints almost identically to standard PLA","Zack Freedman S-tier — his recommended everyday workhorse"],"settings":["Nozzle: 205–230°C","Bed: 50–65°C","Cooling: Moderate to high","Speed: 40–80mm/s","Settings nearly identical to standard PLA — straightforward drop-in"],"tips":["The best default choice for most prints where you'd normally use PLA but want reliability","Ideal when printing parts that will be assembled, handled, or used in light mechanical roles","No special hardware required — works on any printer that handles PLA"],"uses":["General-purpose functional parts","Tool handles, brackets, and everyday mechanical parts","Parts that will be dropped, knocked, or stressed in normal use","A direct upgrade from standard PLA for most practical applications"]},{"name":"Matte PLA","fullName":"Matte PLA","category":"Standard","difficulty":"Beginner","tempNozzle":"195–225°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["PLA blended with additives producing a flat, non-reflective surface","Hides layer lines more effectively than glossy PLA","Fingerprint-resistant surface — won't show handling marks","Slightly softer surface feel than standard PLA","Polymaker PolyTerra is the most popular formulation; also available from Bambu, eSUN, Elegoo","Zack Freedman B-tier"],"settings":["Nozzle: 200–220°C","Bed: 50–60°C","Cooling: High","Speed: 40–70mm/s — same as standard PLA"],"tips":["Paint adhesion is excellent — the matte texture grips primer and paint better than glossy PLA","Great for display models, miniatures, and cosplay props that will be painted","Sands very well — the matte surface sands to a smooth finish with less effort","Not structurally different from standard PLA — choose it for aesthetics, not strength"],"uses":["Display models and collector pieces","Cosplay props and wearables to be painted","Architectural models","Parts where fingerprints and reflections are undesirable","Miniatures and figurines"]},{"name":"LW-PLA","fullName":"Lightweight / Foaming PLA","category":"Standard","difficulty":"Intermediate","tempNozzle":"200–250°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Contains a chemical blowing agent that releases gas and expands the filament during extrusion","At activation temperature, filament expands up to 3x its original volume","Density as low as 0.54 g/cm³ — roughly half the weight of standard PLA","Closed-cell foam microstructure gives reasonable structural rigidity for weight","Essential material for RC aircraft fuselages and wings","eSUN ePLA-LW is the most widely used brand; also Prusament LW-PLA"],"settings":["Nozzle: 220–245°C for activation (expansion begins around 215–220°C depending on brand)","At 230°C: ~100% expansion (normal flow, low density)","At 240°C+: ~200% expansion (reduce flow rate to 40–50% to compensate)","Bed: 50–60°C","Flow rate tuning is critical — run a calibration print to find your ideal temp/flow combo","Speed: 30–60mm/s — slower than standard PLA","Cooling: Moderate"],"tips":["The key to LW-PLA is calibrating flow rate at your target temperature — every brand is slightly different","Print a single-wall calibration cube at various temps and flow rates; weigh the result to find the right combination","For RC aircraft, target 0.5–0.7 g/cm³ for a good strength-to-weight balance","Layer bonding is slightly weaker than standard PLA due to the foam structure — increase overlap/infill if strength is needed","Stringing can be worse than standard PLA; increase retraction by 1–2mm","Compatible with most standard PLA print surfaces and hardware"],"uses":["RC aircraft fuselages, wings, and nacelles","Drone frames and quadcopter bodies","Model rocketry components","Any application where weight is the primary design constraint","Floatation devices and buoyant objects"]},{"name":"HT-PLA","fullName":"High-Temperature PLA (Polymaker)","category":"Standard","difficulty":"Intermediate","tempNozzle":"200–235°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Polymaker's PLA formulation engineered for heat stability up to ~150°C without annealing","Standard PLA softens at ~60°C; HT-PLA maintains shape significantly above that","No oven annealing required — heat stability is built into the material","Also available in a glass-fiber reinforced variant for additional stiffness","Prints similarly to standard PLA","Not as heat resistant as engineering materials like ABS or Nylon — but dramatically better than PLA"],"settings":["Nozzle: 205–230°C","Bed: 50–60°C","Cooling: Moderate to high","Speed: 40–70mm/s"],"tips":["If your part will be near a heat source but not inside an enclosure, HT-PLA is often the simplest upgrade path","For even better heat resistance, the GF variant adds stiffness at temperature","Mechanical properties are similar to PLA — this is purely a heat resistance upgrade, not a strength upgrade"],"uses":["Parts near heat sources: light fixtures, electronics near components, automotive interior trim","Outdoor parts in hot climates","Anything that would be left in a hot car","Electronics enclosures with heat-generating components"]},{"name":"Silk PLA","fullName":"Silk PLA","category":"Standard","difficulty":"Beginner","tempNozzle":"195–230°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["PLA with additives producing a high-gloss, shimmering, metallic-looking surface","Not structurally stronger than standard PLA — purely aesthetic modification","Surface layer lines appear reduced due to the reflective finish","Available in single-color, dual-color, and rainbow coextruded variants","Zack Freedman B-tier"],"settings":["Nozzle: 205–225°C — slightly higher than standard PLA for best sheen","Bed: 50–60°C","Cooling: Moderate — too much cooling can reduce the glossy effect","Speed: 40–60mm/s — slower printing produces better surface quality"],"tips":["The sheen is entirely surface-level — layer adhesion and structural properties are PLA-grade","Harder to paint than matte PLA — the glossy surface needs priming","Dual-color silk creates color-shift effects that change with viewing angle; print orientation matters for the visual effect","Avoid using for anything structural — choose Tough PLA or PLA+ instead"],"uses":["Trophies, awards, and display pieces","Figurines and collector models","Decorative vases and home decor","Cosplay props where a metallic look is desired without painting"]},{"name":"PolyWood","fullName":"PolyWood Faux Wood PLA (Polymaker)","category":"Standard","difficulty":"Beginner","tempNozzle":"195–220°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Polymaker's wood-look PLA using foaming technology instead of actual wood fibers","No wood particles means no clogging risk — a major advantage over traditional wood-fill filaments","Surface texture mimics wood grain convincingly","Can be sanded, stained, and varnished like real wood","Lighter than traditional wood-fill due to foam microstructure"],"settings":["Nozzle: 195–215°C","Bed: 50–60°C","Cooling: Moderate to high","Speed: 40–60mm/s"],"tips":["Staining with wood stain gives very convincing real-wood appearance","Sand between stain coats for best results — works just like real wood finishing","Higher print temperatures produce a darker, more 'burnt wood' look"],"uses":["Decorative wood-look items: bowls, frames, figurines","Furniture prototypes and architectural models","Props and set pieces","Any application where you want a wood aesthetic without actual wood"]},{"name":"PolyCast","fullName":"PolyCast Investment Casting PLA (Polymaker)","category":"Standard","difficulty":"Intermediate","tempNozzle":"195–225°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Specially formulated to burn out completely in an investment casting kiln with zero ash or residue","Standard PLA leaves carbon residue in molds — PolyCast does not","Enables lost-filament casting: print the model, invest in plaster, burn out, pour metal","Prints essentially identically to standard PLA","Compatible with standard jewelry casting and foundry investment plaster"],"settings":["Nozzle: 200–220°C","Bed: 50–60°C","Cooling: High","Speed: 40–60mm/s — same as standard PLA"],"tips":["Print with low infill (10–15%) or hollow to reduce burnout time and investment stress","Ensure complete burnout at 730°C+ for at least 1 hour","Works with silver, gold, brass, bronze, and other casting alloys","Surface finish of the print transfers directly to the casting — optimize print quality before investing"],"uses":["Jewelry casting (rings, pendants, custom pieces)","Small metal parts production","Art casting and sculpture","Any lost-wax style casting process using a 3D-printed master"]},{"name":"CosPLA","fullName":"CosPLA (Polymaker)","category":"Standard","difficulty":"Beginner","tempNozzle":"195–225°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Polymaker's formula optimized specifically for cosplay prop production","Easy to sand — softer surface than standard PLA for faster prep work","Good paint and primer adhesion","Slightly more flexible than standard PLA — resists cracking when assembled or worn","Durable enough for convention wear and handling"],"settings":["Nozzle: 200–220°C","Bed: 50–60°C","Cooling: High","Speed: 40–70mm/s"],"tips":["Designed for sanding → priming → painting workflow — skip this filament for structural parts","The softer surface sands through grits quickly; 150 → 220 → 400 grit is usually sufficient before priming","Acetone does not smooth CosPLA — use sandpaper and primer"],"uses":["Cosplay armor and props","LARP weapons and accessories","Convention display pieces","Theater props"]},{"name":"PolySmooth / PVB","fullName":"PolySmooth (Polyvinyl Butyral)","category":"Standard","difficulty":"Intermediate","tempNozzle":"185–210°C","tempBed":"35–55°C","tempChamber":"Not required","properties":["PVB filament that smooths to a layer-free surface using isopropyl alcohol (IPA)","Transparent or semi-transparent — can produce glass-like clarity after smoothing","Prints at lower temperatures than PLA — easy on hardware","Polymaker's Polysher machine automates the smoothing process with IPA vapor","Can also be manually smoothed by brushing or wiping with 99% IPA","Prusament also carries a PVB variant","Zack Freedman C-tier — useful but niche"],"settings":["Nozzle: 185–205°C","Bed: 35–55°C — lower than PLA","Cooling: Moderate","Speed: 40–60mm/s"],"tips":["Use 99% IPA for smoothing — lower concentrations don't work as effectively","Smoothing removes material — final dimensions will be slightly smaller than printed","Over-smoothing causes the part to lose shape; work in short sessions","Avoid breathing IPA vapor — work in a ventilated area or use the Polysher enclosure","Store sealed — PVB absorbs moisture and will print poorly if damp"],"uses":["Display models requiring a smooth, painted appearance without sanding","Transparent vases, lamps, and light diffusers","Medical models where smooth surfaces are required","Any visual model where layer lines are unacceptable"]},{"name":"4D PLA","fullName":"eSUN 4D Shape-Memory PLA","category":"Standard","difficulty":"Intermediate","tempNozzle":"190–220°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Shape-memory PLA from eSUN — prints in one configuration, can be deformed, then returns to original shape when heated","True 4D printing: the fourth dimension is time/heat response","Maintains shape memory through multiple deformation-recovery cycles","Activation temperature typically 60–70°C (hot water or heat gun)","Mechanical properties similar to standard PLA at room temperature"],"settings":["Nozzle: 195–215°C","Bed: 50–60°C","Cooling: Moderate to high","Speed: 40–60mm/s"],"tips":["Program the 'memorized shape' during printing — the printed shape is what the part returns to","Deform while warm (above activation temp), hold in new shape while cooling to set the temporary shape","Useful for deployable structures, self-assembling mechanisms, and medical devices","Each brand's activation temperature varies — test before critical use"],"uses":["Self-straightening or self-deploying structures","Educational demonstrations of shape-memory materials","Soft actuators and deployable mechanisms","Medical and biomedical research applications"]},{"name":"Color-Change PLA","fullName":"UV / Temperature Color-Changing PLA","category":"Standard","difficulty":"Beginner","tempNozzle":"190–225°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["PLA infused with photochromic (UV-reactive) or thermochromic (heat-reactive) pigments","UV variants change color in sunlight and revert indoors","Temp variants change color above a threshold temperature (typically 28–35°C)","eSUN's ePLA-Chameleon and ePLA-Magic are the most well-known formulations","Purely decorative — no mechanical advantage over standard PLA","Reviewed by Zack Freedman"],"settings":["Nozzle: 195–215°C","Bed: 50–60°C","Cooling: High","Speed: 40–70mm/s"],"tips":["UV variants fade over time with prolonged sun exposure — the pigments eventually wear out","Temp-change variants are great for novelty items and educational tools showing heat signatures","Structurally identical to standard PLA — don't use for anything where strength matters"],"uses":["Outdoor decor that changes with weather","Novelty items and toys","Educational models demonstrating temperature gradients","Cosplay props with UV light effects"]},{"name":"ABS","fullName":"Acrylonitrile Butadiene Styrene","category":"Standard","difficulty":"Intermediate","tempNozzle":"210–250°C","tempBed":"100–110°C","tempChamber":"Recommended (40–60°C)","properties":["Petroleum-based thermoplastic — tough, impact-resistant, and machinable","Heat resistance: ~100°C heat deflection temperature","Can be acetone-smoothed and acetone-welded — unique advantage over most filaments","High shrinkage rate causes warping — significant printing challenge","Emits styrene fumes during printing — requires ventilation","Tensile strength: ~40–50 MPa","Zack Freedman C-tier"],"settings":["Nozzle: 230–250°C (higher end for better layer bonding)","Bed: 100–110°C — PEI or garolite surfaces work best; use ABS slurry (ABS dissolved in acetone) on glass","Chamber: 40–60°C strongly recommended — the primary cause of ABS failure is cold ambient air","Cooling: Minimal to none — part cooling causes delamination and warping","Speed: 30–60mm/s","Enclosure: Effectively required for anything larger than a few centimeters"],"tips":["Warping is the #1 challenge — a proper enclosure with a heated bed at 110°C solves most issues","ABS slurry (ABS dissolved in acetone) applied to the glass bed is a classic and effective adhesion method","Print in a well-ventilated space or use an exhaust filter — styrene fumes are a real health concern","Acetone smoothing: brush pure acetone onto the surface for a glossy, layer-free finish","Acetone welding: join two ABS parts by applying acetone to the joint and clamping — creates a near-seamless bond","PETG, ASA, or PC blends have replaced ABS for most applications — use ABS primarily when you need acetone smoothing"],"uses":["Parts requiring acetone smoothing or welding","Automotive interior trim and enclosures near heat sources","Functional parts needing ~100°C heat resistance","Electrical enclosures and housings","Parts that will be machined or tapped after printing"]},{"name":"ASA","fullName":"Acrylonitrile Styrene Acrylate","category":"Standard","difficulty":"Intermediate","tempNozzle":"230–260°C","tempBed":"90–110°C","tempChamber":"Recommended","properties":["ABS replacement engineered specifically for outdoor and UV-exposed applications","Excellent UV stability — does not yellow, fade, or become brittle in sunlight","Heat resistance similar to ABS (~100°C)","Slightly less impact-resistant than ABS but better chemical resistance","Warps similarly to ABS — still requires heated bed and ideally an enclosure","Zack Freedman A-tier"],"settings":["Nozzle: 240–260°C","Bed: 90–110°C","Chamber: Recommended to reduce warping","Cooling: Minimal — same consideration as ABS","Speed: 30–60mm/s"],"tips":["ASA is strictly better than ABS for any outdoor application — no reason to use ABS outdoors","Can be acetone-smoothed like ABS — same technique applies","Fumes are less harsh than ABS but still present — ventilate","For enclosureless printing, keep ambient temperature above 20°C and avoid drafts","Bambu's ASA Aero adds foaming for a lightweight UV-resistant option for RC aircraft"],"uses":["Outdoor signs, enclosures, and fixtures","Automotive exterior trim and under-hood covers","RC vehicle bodies exposed to sunlight","Garden tools, outdoor brackets, and mounts","Any application needing ABS-class heat resistance plus UV stability"]},{"name":"ASA Aero","fullName":"ASA Aero (Bambu Lab)","category":"Standard","difficulty":"Intermediate","tempNozzle":"240–260°C","tempBed":"90–110°C","tempChamber":"Recommended","properties":["Bambu's lightweight foaming ASA — combines UV/weather resistance with reduced density","Expands during extrusion like LW-PLA for lower weight","Retains ASA's UV resistance and outdoor durability","Designed specifically for RC aircraft fuselages and drone bodies that need outdoor exposure","Similar concept to LW-ASA from colorFabb"],"settings":["Nozzle: 240–255°C — temperature controls foam expansion like LW-PLA","Bed: 90–110°C","Flow rate: Reduce to compensate for expansion (calibrate at target temperature)","Speed: 30–50mm/s"],"tips":["Calibrate foam expansion carefully — run a temp tower and weigh samples to dial in flow rate","Excellent for RC aircraft that will fly outdoors and need UV resistance LW-PLA lacks","Requires the same enclosure and bed temp care as standard ASA"],"uses":["RC aircraft fuselages and wings for outdoor flying","Lightweight outdoor structural parts","Drone bodies exposed to weathering"]},{"name":"PETG","fullName":"Polyethylene Terephthalate Glycol","category":"Standard","difficulty":"Beginner","tempNozzle":"220–250°C","tempBed":"70–85°C","tempChamber":"Not required","properties":["The 'goldilocks' filament — balanced properties between PLA and engineering materials","Heat resistance: ~80°C — significantly better than PLA","Good chemical resistance — food-safe if printed correctly (though layer adhesion is not truly food-safe)","Low warping — minimal bed adhesion requirements","Slightly flexible compared to PLA — good impact resistance without being brittle","Mild moisture resistance","Tensile strength: ~50–55 MPa","Zack Freedman A-tier"],"settings":["Nozzle: 230–245°C is the sweet spot for most brands","Bed: 70–85°C — PEI plate or glass with light adhesive; textured PEI works very well","Cooling: Moderate (30–50%) — PETG doesn't need aggressive cooling; too much causes poor layer adhesion","Speed: 40–70mm/s","No enclosure needed","Note: PETG sticks aggressively to smooth PEI — use a release agent or textured PEI"],"tips":["PETG strings more than PLA — increase retraction distance and enable combing/avoid-crossing","The biggest failure mode: printing too hot causes excessive stringing; drop temp by 5°C if strings appear","PETG can stick too well to smooth PEI sheets and rip the coating — use release agent (glue stick, hairspray) or use textured PEI","Excellent for watertight prints — PETG layers bond well and resist moisture","One of the best filaments for RC parts: good strength, some flex to absorb crashes, easy to print"],"uses":["Water bottles, containers, and food-adjacent applications","RC aircraft and drone components","Mechanical parts in moderate temperature environments","Outdoor parts that don't need full UV resistance (ASA is better for long-term UV)","Enclosures and housings where PLA's heat resistance is insufficient","Anything that needs to survive a dishwasher or mild chemical exposure"]},{"name":"Rapid PETG","fullName":"High-Flow / Rapid PETG","category":"Standard","difficulty":"Beginner","tempNozzle":"230–255°C","tempBed":"70–85°C","tempChamber":"Not required","properties":["High-speed formulation of PETG for use at 200–600mm/s on capable printers","Elegoo Rapid PETG and Bambu PETG HF are the most well-known versions","Maintains PETG's mechanical properties and ease of use","Requires high-flow hot end and fast printer to realize speed benefits"],"settings":["Nozzle: 240–255°C (higher than standard PETG to enable high flow)","Bed: 70–85°C","Cooling: High at high speeds","Speed: 100–600mm/s on capable machines"],"tips":["Same guidance as standard PETG — just faster on the right hardware","On a standard printer, use it at normal PETG settings — no harm, no benefit"],"uses":["Same as PETG — just faster production","High-volume parts runs","Rapid prototyping where PETG properties are needed"]},{"name":"PETG V0","fullName":"PETG V0 Flame Retardant","category":"Engineering","difficulty":"Intermediate","tempNozzle":"230–255°C","tempBed":"75–85°C","tempChamber":"Not required","properties":["PETG formulated to meet UL 94 V-0 flame retardancy rating","V-0 rating means it self-extinguishes within 10 seconds when flame is removed","Retains PETG's chemical resistance and ease of printing","Available from Prusament, Elegoo (PC-FR variant), and Polymaker","Required for electronics enclosures and safety-critical applications"],"settings":["Nozzle: 235–250°C","Bed: 75–85°C","Cooling: Moderate","Speed: 40–60mm/s"],"tips":["Flame retardant additives can affect layer bonding slightly — print at higher end of temp range","Check the specific V-0 rating certificate before using in regulated applications","Not all 'flame retardant' filaments are true V-0 — verify the UL 94 rating"],"uses":["Electronics enclosures and PCB housings","Electrical junction boxes","Consumer electronics prototypes requiring fire safety certification","Aerospace and automotive safety-adjacent applications"]},{"name":"PETG Tungsten","fullName":"PETG Tungsten 75% (Prusament)","category":"Specialty","difficulty":"Intermediate","tempNozzle":"230–255°C","tempBed":"75–85°C","tempChamber":"Not required","properties":["PETG loaded with 75% tungsten powder by weight — extremely dense","Density approximately 4–6 g/cm³ (PETG alone is ~1.27 g/cm³)","Tungsten provides significant gamma and X-ray radiation attenuation","Extreme nozzle wear — hardened steel or ruby nozzle mandatory","Prints somewhat like standard PETG but flows more slowly due to mass"],"settings":["Nozzle: 235–250°C — hardened nozzle required","Bed: 75–85°C","Speed: 20–40mm/s — slow due to mass","Cooling: Moderate"],"tips":["This filament is extremely heavy — account for part weight in structural calculations","Excellent as counterweight ballast in precision equipment","Hardened steel nozzle is non-negotiable — tungsten powder destroys brass instantly"],"uses":["Radiation shielding inserts for medical and nuclear applications","Counterweights and precision balance weights","Ballast for watercraft and aircraft models","X-ray collimators and shielding components"]},{"name":"PETG Magnetite","fullName":"PETG Magnetite 40% (Prusament)","category":"Specialty","difficulty":"Intermediate","tempNozzle":"225–250°C","tempBed":"70–85°C","tempChamber":"Not required","properties":["PETG with 40% magnetite (iron oxide Fe₃O₄) filler — actually ferrimagnetic","Genuinely sticks to magnets and can be magnetized — not just iron-filled decorative material","Higher density than standard PETG","Requires hardened nozzle due to abrasive filler"],"settings":["Nozzle: 230–250°C — hardened nozzle required","Bed: 75–85°C","Speed: 30–50mm/s"],"tips":["Magnetize parts after printing with a strong rare-earth magnet","Magnetic strength depends on filler loading and part geometry — not a replacement for real magnets","Good for magnetic fixtures, latches, and educational demonstrations"],"uses":["Magnetic latches and closures","Sensor trigger components","Educational magnetic demonstration models","Magnetic mounting fixtures"]},{"name":"HIPS","fullName":"High Impact Polystyrene","category":"Support Materials","difficulty":"Intermediate","tempNozzle":"220–240°C","tempBed":"100–110°C","tempChamber":"Recommended","properties":["Dissolves completely in d-limonene (citrus solvent) — ideal as support for ABS prints","Similar print temperature and conditions to ABS — easy co-printing on dual-extruder machines","Can also be used as a standalone structural material","High impact resistance as a structural material","Zack Freedman B-tier"],"settings":["Nozzle: 220–240°C","Bed: 100–110°C — same as ABS","Chamber: Same conditions as ABS","Cooling: Minimal"],"tips":["d-Limonene is safe to use but has a strong citrus odor — work in ventilated area","Dissolve HIPS supports in a container of d-limonene for several hours to overnight","Agitating the solvent bath speeds up dissolution significantly","Interface distance matters — too close and HIPS bonds to ABS; too far and support quality suffers"],"uses":["Dissolvable supports for ABS dual-extrusion prints","Complex geometry support on ABS parts","Standalone structural parts where ABS-class toughness is needed"]},{"name":"PVA","fullName":"Polyvinyl Alcohol","category":"Support Materials","difficulty":"Intermediate","tempNozzle":"185–200°C","tempBed":"35–55°C","tempChamber":"Not required","properties":["Water-soluble support material — dissolves completely in warm water","Enables clean removal of supports in internal cavities and complex overhangs","Very hygroscopic — absorbs moisture from air rapidly","Compatible with PLA and other low-temp filaments on dual-extruder printers","Bambu's AMS system uses PVA-based support interfaces"],"settings":["Nozzle: 185–200°C","Bed: 35–55°C","Cooling: Moderate","Must be kept dry — use a sealed dry box during printing"],"tips":["PVA is the most finicky filament to store — even a few hours in humid air can make it unprintable","If PVA pops, clicks, or strands poorly, dry it at 45°C for 6–12 hours in a food dehydrator","Warm water (40–50°C) speeds up dissolution vs cold water","Agitate the water bath for faster dissolving","For PETG/engineering-grade filaments, BVOH dissolves faster and has better compatibility"],"uses":["Complex overhangs and internal cavities on PLA parts","Multi-material dual-extrusion prints where support removal would damage part","Embedded features and channels that are otherwise inaccessible"]},{"name":"BVOH","fullName":"Butenediol Vinyl Alcohol Copolymer (Prusament)","category":"Support Materials","difficulty":"Intermediate","tempNozzle":"195–215°C","tempBed":"35–65°C","tempChamber":"Not required","properties":["Water-soluble support material like PVA but with faster dissolution rate","Better thermal compatibility with PETG and engineering-grade filaments compared to PVA","Less hygroscopic than PVA — more forgiving to store","Available from Prusament; also sold by other vendors under generic names"],"settings":["Nozzle: 195–215°C","Bed: 35–65°C","Speed: 30–50mm/s"],"tips":["The preferred PVA alternative for PETG dual-extrusion setups","Still hygroscopic — store sealed with desiccant","Dissolves in 30–60 minutes in warm water vs several hours for PVA"],"uses":["Dissolvable supports for PETG, Nylon, and other engineering-grade filaments","Multi-material support interfaces on dual-extrusion printers","Complex geometry prints where clean support removal is critical"]},{"name":"PolySupport","fullName":"PolySupport Breakaway Support (Polymaker)","category":"Support Materials","difficulty":"Beginner","tempNozzle":"195–220°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Non-soluble breakaway support material optimized for PLA-based filaments","Interfaces that simply snap off cleanly — no dissolving required","Designed to bond minimally to PLA/Tough PLA/PLA+ at the interface layer","No solvent needed — just peel or snap away supports"],"settings":["Nozzle: 200–215°C","Bed: 50–60°C","Interface layer: 0.1–0.2mm gap recommended"],"tips":["Tuning the interface gap is the most important setting — too close and it bonds, too far and overhangs sag","Works best with PLA family filaments; less effective with PETG or engineering materials","Faster than PVA since no soaking is required — just snap and go"],"uses":["Quick support removal on PLA prints","Prototyping workflows where fast turnaround matters","Dual-extrusion PLA prints with complex overhangs"]},{"name":"Ionic Support","fullName":"Ionic Hybrid Support (MatterHackers)","category":"Support Materials","difficulty":"Intermediate","tempNozzle":"230–260°C","tempBed":"75–110°C","tempChamber":"As required by base material","properties":["MatterHackers' high-temperature support interface material","Designed for engineering-grade filaments where PVA fails (Nylon, PC, PA-CF)","Bonds minimally to engineering materials — snaps off cleanly","Prints at elevated temperatures compatible with Nylon and PC print conditions"],"settings":["Nozzle: 240–260°C","Bed: 90–110°C","Chamber: As required for the base material"],"tips":["The right tool for Nylon-CF and PC prints where removing supports would otherwise damage the part","Match chamber/bed conditions to the base material — Ionic handles the range","Always test adhesion/release characteristics before a full production print"],"uses":["Supports for Nylon, PA-CF, and Polycarbonate prints","Complex engineering-grade geometry that needs clean support removal"]},{"name":"Bambu Support for PA/PET","fullName":"Bambu Support for PA/PET-CF","category":"Support Materials","difficulty":"Intermediate","tempNozzle":"250–275°C","tempBed":"85–110°C","tempChamber":"Recommended","properties":["Bambu Lab's proprietary support interface specifically for their PA (Nylon) and PET-CF materials","Releases cleanly from PAHT-CF, PA6-GF, and PET-CF interfaces","Formulated to match the high-temperature conditions these materials require"],"settings":["Nozzle: 250–270°C","Bed: 90–110°C","Use Bambu Slicer profiles for optimal interface settings"],"tips":["Designed for Bambu's AMS multi-material system — works best in that ecosystem","Follow Bambu's published interface gap settings for each supported material combination"],"uses":["Supports for Bambu PA/PET-CF engineering prints","Multi-material engineering prints on Bambu printers"]},{"name":"Nylon PA6","fullName":"Polyamide 6","category":"Engineering","difficulty":"Intermediate","tempNozzle":"240–260°C","tempBed":"70–90°C","tempChamber":"Recommended","properties":["Engineering-grade polyamide — excellent wear resistance, toughness, and thermal stability","Heat resistance: ~80–100°C under load","Self-lubricating surface — reduces friction in moving parts","Tensile strength: ~75–85 MPa","Very hygroscopic — absorbs moisture aggressively from the air","Slight flexibility and excellent fatigue resistance","Zack Freedman B-tier"],"settings":["Nozzle: 240–260°C","Bed: 70–90°C — garolite (G10) is the gold standard bed surface for nylon; also PEI with glue stick","Chamber: Enclosure strongly recommended to prevent warping","Cooling: Minimal — nylon needs to cool slowly to avoid delamination","Speed: 30–60mm/s"],"tips":["Moisture is the enemy — dry at 80°C for 8–12 hours before printing and keep in a dry box during the print","Wet nylon prints with visible bubbling, rough surfaces, and weak layer adhesion","Garolite G10 bed surface is highly recommended — nylon bonds well and releases cleanly when cool","Nylon shrinks more than PLA/PETG — account for 1–2% dimensional change in tight-tolerance parts","For best wear resistance, print with 4+ perimeters and 40–60% infill"],"uses":["Gears, pulleys, and bushings","Wear-resistant sliding parts","Structural brackets exposed to moderate heat","Living hinges (PA12 is better for this)","Cable guides and management clips"]},{"name":"Nylon PA12","fullName":"Polyamide 12","category":"Engineering","difficulty":"Intermediate","tempNozzle":"240–270°C","tempBed":"70–90°C","tempChamber":"Recommended","properties":["Lower moisture absorption than PA6 — significantly more stable in humid environments","More flexible than PA6 — better for living hinges and snap-fits","Good chemical resistance — resists oils, fuels, and solvents","Heat resistance comparable to PA6 (~80°C under load)","Excellent fatigue resistance — better than PA6 for repeated flex cycles","Zack Freedman B-tier"],"settings":["Nozzle: 240–270°C","Bed: 70–90°C","Chamber: Recommended","Cooling: Minimal","Speed: 30–60mm/s","Still hygroscopic — dry before printing, but less aggressive than PA6"],"tips":["PA12 is the better choice for most nylon applications unless you specifically need PA6's higher stiffness","Living hinges are best in PA12 due to its flexibility and fatigue resistance","Better dimensional stability than PA6 in humid environments","Garolite bed surface still recommended"],"uses":["Living hinges and flexible snap-fits","Chemical-resistant containers and tubing","Flexible mechanical parts","Parts exposed to fuels or lubricants","Outdoor mechanical components"]},{"name":"PolyMide CoPA","fullName":"PolyMide CoPA Nylon Copolymer (Polymaker)","category":"Engineering","difficulty":"Intermediate","tempNozzle":"250–270°C","tempBed":"45–60°C","tempChamber":"Not required","properties":["Polymaker's nylon 6/66 copolymer formulated for warp-free printing without an enclosure","Heat resistance up to ~180°C — significantly higher than standard PA6","Lower moisture absorption than PA6 due to copolymer structure","Prints without an enclosure — a major practical advantage over standard nylons","Tensile strength comparable to PA6"],"settings":["Nozzle: 250–270°C","Bed: 45–60°C — Polymaker recommends their build surfaces","Cooling: None to minimal","Enclosure: Not required (the key selling point)"],"tips":["The main advantage over standard PA6/12 is no enclosure required","Still hygroscopic — dry before use","The 180°C heat resistance makes it suitable for applications standard nylon can't handle"],"uses":["High-strength nylon parts without an enclosure printer","Under-hood automotive components","Electrical connectors and housings","High-temp structural brackets"]},{"name":"PC","fullName":"Polycarbonate","category":"Engineering","difficulty":"Advanced","tempNozzle":"260–310°C","tempBed":"90–120°C","tempChamber":"Strongly recommended (50–70°C)","properties":["Among the highest impact strength of any printable filament — used in bulletproof glass and riot shields","Heat deflection temperature: ~110–130°C","Naturally transparent — printed PC is typically opaque but can achieve translucency","High shrinkage rate — warps aggressively without proper conditions","Hygroscopic — must be dried before printing","Tensile strength: ~55–70 MPa","Zack Freedman B-tier"],"settings":["Nozzle: 270–300°C (higher end for better layer bonding — cold printing is the primary failure mode)","Bed: 100–120°C","Chamber: 50–70°C — effectively required for anything larger than small parts","Cooling: None to very minimal — part cooling kills layer adhesion in PC","Speed: 30–50mm/s","Drying: 80°C for 4–6 hours before printing"],"tips":["Layer adhesion is everything — if getting delamination, raise nozzle temp first","PETG and PC-ABS blend alternatives are much easier to print while retaining most benefits","PC sticks very well to PEI — a slightly squished first layer is critical","Acetone does not work on PC — methylene chloride (DCM) is the solvent, which requires proper PPE","Shrinkage is significant — leave tolerance in tight-fit parts and measure after printing","PCTG is Zack's S-tier alternative that prints far more easily with comparable properties for most uses"],"uses":["High-impact enclosures and structural brackets","Transparent covers and sight glasses","Drone and RC frames where maximum toughness is needed","Tooling and jigs exposed to heat","Parts requiring both heat resistance and impact resistance simultaneously"]},{"name":"PC Blend","fullName":"Polycarbonate Blend (Prusament / Polymaker)","category":"Engineering","difficulty":"Advanced","tempNozzle":"250–280°C","tempBed":"90–110°C","tempChamber":"Recommended","properties":["PC mixed with other polymers (varies by manufacturer) to improve printability","Retains most of PC's strength and heat resistance (~100°C)","Lower warping tendency than pure PC","Available from Prusament, Polymaker, and MatterHackers"],"settings":["Nozzle: 255–275°C","Bed: 90–110°C","Chamber: Recommended","Cooling: Minimal"],"tips":["The practical choice when pure PC's printability is a concern","Check manufacturer specs — 'blend' compositions vary and properties differ significantly","Still requires enclosure for best results"],"uses":["Durable enclosures","Structural parts requiring PC-class properties with better printability"]},{"name":"PC Space Grade","fullName":"PC Space Grade (Prusament)","category":"Engineering","difficulty":"Advanced","tempNozzle":"260–310°C","tempBed":"100–120°C","tempChamber":"Required","properties":["Prusament's polycarbonate formulated for aerospace and high-reliability structural applications","Meets outgassing requirements for space-adjacent applications","Higher performance specifications than standard PC Blend","Designed for structural components in demanding aerospace environments"],"settings":["Nozzle: 275–300°C","Bed: 110–120°C","Chamber: Required","Cooling: None"],"tips":["Requires the same printing discipline as pure PC — hot, enclosed, slow","Follow Prusament's published settings closely — this material has specific requirements","Verify your printer can reliably hit 300°C nozzle temp before purchasing"],"uses":["Aerospace structural components","Satellite components","High-reliability industrial parts"]},{"name":"PCTG","fullName":"Polycarbonate-PETG Alloy","category":"Engineering","difficulty":"Intermediate","tempNozzle":"240–265°C","tempBed":"70–90°C","tempChamber":"Optional","properties":["Hybrid of PC and PETG — stronger and more heat-resistant than PETG, significantly easier to print than PC","Heat resistance: ~75–90°C — between PETG and PC","Impact resistance better than PETG, approaching PC","Low warping — much more forgiving than PC","Zack Freedman S-tier sleeper pick — his recommendation for most PC use cases"],"settings":["Nozzle: 245–260°C","Bed: 75–85°C","Cooling: Low to moderate","Speed: 40–70mm/s","No enclosure required in most cases"],"tips":["If you're considering PC but dreading the print process, try PCTG first","Prints like a harder PETG — familiar to anyone who has printed PETG","Better snap-fit performance than either PETG or pure PC due to balanced flex/stiffness"],"uses":["Enclosures where PETG isn't quite heat-resistant enough","Snap-fits and clip assemblies","Functional mechanical parts needing PC-approaching performance","A practical alternative to PC for most desktop applications"]},{"name":"PC-ABS","fullName":"Polycarbonate-ABS Blend","category":"Engineering","difficulty":"Advanced","tempNozzle":"240–270°C","tempBed":"90–110°C","tempChamber":"Recommended","properties":["Combines PC's impact strength with ABS's printability","Better impact resistance than ABS alone","Easier to print than pure PC","Can be acetone-smoothed like ABS","Heat resistance between ABS and PC (~100–110°C)"],"settings":["Nozzle: 245–265°C","Bed: 90–110°C","Chamber: Recommended","Cooling: Minimal"],"tips":["The classic industrial 3D printing material — widely used in commercial FDM printers","Acetone smoothing works similar to ABS","PCTG is often a better choice for desktop printing unless acetone smoothing is specifically needed"],"uses":["Durable enclosures","Automotive parts","Consumer electronics housings","Parts combining strength and processability"]},{"name":"PC-PBT","fullName":"PC-PBT Alloy (Polymaker PolyMax)","category":"Engineering","difficulty":"Advanced","tempNozzle":"245–275°C","tempBed":"90–110°C","tempChamber":"Recommended","properties":["PC alloyed with PBT (polybutylene terephthalate) polyester","Outstanding chemical resistance — resists fuels, oils, brake fluid, and automotive solvents","Good heat resistance (~110–120°C)","Impact resistance comparable to PC","Used commercially in automotive fuel system components","Zack Freedman A-tier"],"settings":["Nozzle: 250–270°C","Bed: 90–110°C","Chamber: Recommended","Cooling: Minimal"],"tips":["The go-to for any application involving fuel, oil, or automotive chemicals","Better chemical resistance than standard PC-ABS for harsh environments"],"uses":["Automotive fuel system components","Chemical-resistant enclosures","Under-hood brackets near fluids","Industrial parts exposed to solvents"]},{"name":"PC-FR","fullName":"PC Flame-Retardant (Elegoo / Polymaker)","category":"Engineering","difficulty":"Advanced","tempNozzle":"260–300°C","tempBed":"100–120°C","tempChamber":"Required","properties":["Flame-retardant polycarbonate meeting UL 94 V-0 or better","Retains PC's high impact strength and heat resistance","Available from Elegoo and Polymaker","Required for electronics and safety-critical applications needing both PC strength and flame resistance"],"settings":["Nozzle: 265–295°C","Bed: 105–115°C","Chamber: Required"],"tips":["Requires same print discipline as pure PC — hot, enclosed, slow","Verify the specific flame rating — V-0, V-1, and V-2 are different standards"],"uses":["High-voltage electrical enclosures","Safety-critical structural parts","Electronics housings requiring both PC strength and fire safety"]},{"name":"PP","fullName":"Polypropylene","category":"Engineering","difficulty":"Advanced","tempNozzle":"220–250°C","tempBed":"85–100°C (PP tape recommended)","tempChamber":"Helpful","properties":["Lightweight — density of ~0.9 g/cm³, lowest of any structural filament","Outstanding chemical resistance — resists acids, bases, and most solvents","Living-hinge capability — can flex millions of times without fatiguing","Very low moisture absorption — essentially hydrophobic","Extremely difficult to print — lowest bed adhesion of any common filament","Zack Freedman F-tier for printability"],"settings":["Nozzle: 225–245°C","Bed: PP sheet or PP tape on the build plate — the only reliable adhesion method for PP","Enclosure: Helpful to reduce warping","Speed: 25–50mm/s","Cooling: Moderate"],"tips":["PP only bonds reliably to itself — use a PP sheet or PP tape on your bed","Even with PP tape, first layers can delaminate — this is the material's biggest weakness","Warping is significant — print small parts first to understand the material behavior","Consider PP-CF or PP-GF which add fiber reinforcement and significantly reduce warping","For living-hinge applications, PA12 or TPU are often easier alternatives unless you specifically need PP's chemical resistance"],"uses":["Chemical-resistant containers, tubing, and fittings","Living hinges for repeated flex cycling","Lightweight structural parts","Food-safe applications (PP is FDA-approved, though layer adhesion limits true food safety)","Medical device housings needing autoclave compatibility"]},{"name":"PP Carbon Fiber","fullName":"PP Carbon Fiber (Prusament)","category":"Composites","difficulty":"Advanced","tempNozzle":"230–260°C","tempBed":"85–100°C","tempChamber":"Helpful","properties":["Polypropylene reinforced with chopped carbon fiber","CF reinforcement dramatically reduces warping compared to plain PP","Retains PP's chemical resistance and low density","Significantly stiffer than plain PP","Requires hardened nozzle"],"settings":["Nozzle: 235–255°C — hardened nozzle required","Bed: PP tape or PP sheet","Speed: 25–45mm/s"],"tips":["Much more printable than plain PP due to reduced warping — recommended over plain PP for most applications","CF adds stiffness but reduces toughness — PP-CF is stiffer but more brittle than plain PP","Still requires PP-compatible bed surface"],"uses":["Lightweight stiff chemical-resistant parts","Structural PP components where reduced warping is needed"]},{"name":"PP Glass Fiber","fullName":"PP Glass Fiber (Prusament)","category":"Composites","difficulty":"Advanced","tempNozzle":"230–260°C","tempBed":"85–100°C","tempChamber":"Helpful","properties":["Polypropylene reinforced with glass fibers","GF reinforcement reduces warping while adding stiffness","Slightly tougher than PP-CF (glass fibers are more flexible than carbon fibers)","Retains PP's chemical resistance","Requires hardened nozzle"],"settings":["Nozzle: 235–255°C — hardened nozzle required","Bed: PP tape or PP sheet"],"tips":["Slightly easier to print than PP-CF due to less aggressive fiber","Good balance of stiffness, toughness, and chemical resistance"],"uses":["Structural chemical-resistant parts","Reinforced PP applications where toughness matters more than maximum stiffness"]},{"name":"PET / HTPET","fullName":"PET / High-Temperature PET","category":"Engineering","difficulty":"Intermediate","tempNozzle":"240–270°C","tempBed":"75–90°C","tempChamber":"Optional","properties":["Standard PET (not glycol-modified like PETG) — stiffer and higher heat resistance than PETG","Heat resistance: ~80–100°C depending on formulation","More rigid than PETG — less flex but higher tensile modulus","Harder to print than PETG — more prone to warping and layer adhesion issues","Zack Freedman B-tier"],"settings":["Nozzle: 245–265°C","Bed: 75–90°C","Cooling: Low to moderate","Speed: 30–60mm/s"],"tips":["If PETG isn't stiff enough, PET is the natural upgrade before moving to engineering materials","Some brands market this as 'HTPET' for the higher heat resistance variants","Bambu's PETG HF approaches PET-class properties while being easier to print"],"uses":["Rigid functional parts needing more heat resistance than PETG","Structural parts where PETG flexes too much"]},{"name":"CPE / nGen","fullName":"Co-Polyester / colorFabb nGen","category":"Engineering","difficulty":"Intermediate","tempNozzle":"210–240°C","tempBed":"60–80°C","tempChamber":"Not required","properties":["Modified copolyester — essentially an enhanced PETG with better heat resistance and less stringing","colorFabb nGen is the most well-known variant; Bambu sells CPE","Heat resistance slightly better than PETG","Very low warping — easier to print than most engineering materials","Good chemical resistance similar to PETG"],"settings":["Nozzle: 215–235°C","Bed: 65–80°C","Cooling: Moderate","Speed: 40–70mm/s"],"tips":["A more refined PETG with fewer strings — good for functional parts that PETG almost handles","Compatible with all standard PETG print surfaces and techniques"],"uses":["Functional parts needing slightly better heat resistance than PETG","Enclosures","Mechanical parts in moderate thermal environments"]},{"name":"POM / Delrin","fullName":"Polyoxymethylene / Delrin","category":"Engineering","difficulty":"Expert","tempNozzle":"195–220°C","tempBed":"80–120°C","tempChamber":"Required","properties":["Self-lubricating engineering plastic with extremely low coefficient of friction","Excellent wear resistance and dimensional stability","Very stiff with good creep resistance","Near-impossible to print reliably — extremely poor interlayer adhesion","Extremely poor bed adhesion — the material doesn't stick to almost anything","Zack Freedman F-tier — only for masochists"],"settings":["Nozzle: 200–215°C","Bed: 100–120°C","Chamber: Required","No known reliably good bed surface — this is the core challenge"],"tips":["POM is better sourced as machined Delrin rod than printed — the printed version rarely meets the mechanical intent","Layer adhesion is so poor that parts delaminate under minimal stress","If you need low-friction self-lubricating parts, Nylon or IGUS Iglidur filaments are far more printable"],"uses":["Attempted gears and precision slides (usually better served by machined Delrin)"]},{"name":"PMMA (Clear)","fullName":"Polymethyl Methacrylate / Acrylic","category":"Specialty","difficulty":"Advanced","tempNozzle":"240–260°C","tempBed":"90–110°C","tempChamber":"Recommended","properties":["3D-printable plexiglass — high optical clarity when printed carefully","UV-resistant — does not yellow in sunlight","Rigid, brittle — similar to acrylic sheet","Zack C-tier for clear PMMA; non-clear PMMA drops to F-tier (no advantage over other materials)"],"settings":["Nozzle: 245–260°C","Bed: 90–110°C","Cooling: Minimal","Speed: 20–40mm/s — slow for clarity"],"tips":["Layer lines are visible — print in clear/natural color only if optical clarity is the goal","Annealing at ~80°C post-print can improve optical clarity","Polishing the surface with acrylic polish significantly improves transparency","Extremely brittle — design with thick walls and avoid sharp internal corners"],"uses":["Optical lenses and covers","Light diffusers and covers","Display cases and windows","Protective covers requiring UV resistance"]},{"name":"HDPE","fullName":"High-Density Polyethylene","category":"Specialty","difficulty":"Expert","tempNozzle":"220–260°C","tempBed":"80–110°C","tempChamber":"Required","properties":["Common plastic used in milk jugs and HDPE pipe — theoretically recyclable into filament","Chemical resistance excellent","Extremely high thermal shrinkage — warps severely","Very poor interlayer adhesion","Zack Freedman F-tier — described as near-unworkable for functional prints"],"settings":["Nozzle: 225–250°C","Bed: 100–110°C","Chamber: Required"],"tips":["Realistically only of interest for recycled/sustainability research","Commercial HDPE recycling into filament exists but quality is highly variable","For any practical application, PP or PETG offers better printability and comparable chemical resistance"],"uses":["Experimental recycled filament research","Prototyping HDPE part geometry (expect dimensional issues)"]},{"name":"TPU 95A — Cheetah (NinjaTek)","fullName":"NinjaTek Cheetah 95A","category":"Flexible","difficulty":"Beginner","tempNozzle":"225–245°C","tempBed":"30–60°C","tempChamber":"Not required","properties":["NinjaTek's most printer-friendly flexible filament","95A Shore hardness — semi-rigid with slight flex","Prints at ABS/PLA speeds — works even on many Bowden setups unlike softer TPUs","Good abrasion resistance and chemical resistance","Suitable for most consumer flexible applications"],"settings":["Nozzle: 228–240°C","Bed: 30–60°C","Speed: 40–80mm/s — faster than most flexible filaments","Retraction: Minimal (0.5–1.5mm) — too much retraction causes jams in flexible filaments","Cooling: Moderate"],"tips":["The entry point for NinjaTek's lineup — start here if you want flexible on a budget printer","Works on Bowden printers where softer TPUs fail — the 95A hardness is key","If prints are jamming mid-print, reduce retraction distance first"],"uses":["Phone cases and covers","Gaskets and seals","Consumer product prototypes","Cable management clips"]},{"name":"TPU 95A (General)","fullName":"TPU 95A General Purpose","category":"Flexible","difficulty":"Intermediate","tempNozzle":"220–240°C","tempBed":"30–60°C","tempChamber":"Not required","properties":["The most widely available flexible filament — sold by every major brand","95A Shore hardness — semi-flex, rubbery but holds shape","Good abrasion and tear resistance","Chemical resistance to oils and greases","Direct drive extruder recommended for reliable printing"],"settings":["Nozzle: 225–235°C","Bed: 30–60°C","Speed: 20–40mm/s for direct drive; 15–25mm/s for Bowden","Retraction: 0.5–2mm for direct drive; minimal for Bowden","Cooling: Moderate"],"tips":["The number one rule for flexible filaments: slow down","Reduce retraction aggressiveness — flexible filament compresses in the tube causing jams","Direct drive extruder is strongly recommended for anything softer than 95A","Disable or greatly reduce retraction on Bowden setups","Bambu's AMS-compatible TPU is specially formulated for their multi-material system"],"uses":["Phone cases and tablet covers","Gaskets and O-ring replacements","Vibration dampening mounts","Flexible hinges and joints","Tool handles and grip covers"]},{"name":"Rapid TPU","fullName":"Rapid / High-Speed TPU (Elegoo / Bambu)","category":"Flexible","difficulty":"Intermediate","tempNozzle":"225–245°C","tempBed":"30–60°C","tempChamber":"Not required","properties":["High-flow TPU formulation for 3–4x faster printing than standard TPU","Available from Elegoo and Bambu","Maintains standard 95A TPU mechanical properties","Requires direct drive and high-flow capable printer"],"settings":["Nozzle: 230–245°C","Bed: 40–60°C","Speed: 60–150mm/s on capable printers"],"tips":["Treat like standard TPU at fast settings — same bed adhesion and retraction principles apply"],"uses":["High-volume flexible part production","Rapid prototyping of flexible designs"]},{"name":"TPU 99A","fullName":"Near-Rigid TPU 99A","category":"Flexible","difficulty":"Intermediate","tempNozzle":"230–250°C","tempBed":"40–60°C","tempChamber":"Not required","properties":["Extremely high durometer — essentially rigid with a very slight rubbery quality","Exceptional toughness — extremely difficult to break under impact","Chemical resistance better than ABS or PLA","Zack Freedman S-tier — his pick for durable parts that need toughness over stiffness"],"settings":["Nozzle: 235–248°C","Bed: 45–60°C","Speed: 30–60mm/s","Direct drive recommended"],"tips":["Think of this as near-indestructible ABS without the warping","Great for brackets, tool parts, and anything that gets knocked around","Still technically flexible — won't shatter under impact the way PC or ABS can"],"uses":["Tough functional brackets","Tool covers and handles","Parts that take repeated impacts","Durable consumer products"]},{"name":"TPU 85A — NinjaFlex","fullName":"NinjaTek NinjaFlex 85A","category":"Flexible","difficulty":"Intermediate","tempNozzle":"225–235°C","tempBed":"20–45°C","tempChamber":"Not required","properties":["The original flexible 3D printing filament — still the benchmark","85A Shore hardness — genuinely flexible and rubbery","660% elongation at break — extremely stretchy","Excellent abrasion resistance — superior to most TPUs","Requires direct drive extruder — will jam in Bowden"],"settings":["Nozzle: 225–235°C","Bed: 20–45°C — sticks to most surfaces without adhesive","Speed: 15–25mm/s — slow is key","Retraction: 0–1mm only","Cooling: Moderate"],"tips":["Disable retraction almost entirely — even 2mm retraction causes jams with 85A","The slower you print, the better the result — don't rush NinjaFlex","Excellent for parts that need to flex, stretch, and snap back repeatedly","Consider Cheetah 95A if you need more speed or have a Bowden setup"],"uses":["Wearables and flexible bands","Soft robotic components","Phone cases requiring significant flex","Flexible wheels and rollers","Prosthetic socket liners"]},{"name":"TPU 83A — Edge (NinjaTek)","fullName":"NinjaTek NinjaFlex Edge 83A","category":"Flexible","difficulty":"Intermediate","tempNozzle":"225–240°C","tempBed":"20–45°C","tempChamber":"Not required","properties":["Softer than NinjaFlex with exceptional rebound energy return","83A Shore hardness","Higher print speeds than standard NinjaFlex at comparable softness","Outstanding bounce-back — nearly fully returns energy on impact or compression"],"settings":["Nozzle: 228–238°C","Bed: 20–45°C","Speed: 25–35mm/s"],"tips":["The bouncier, faster NinjaFlex — choose over 85A when energy return matters more than max elongation"],"uses":["High-rebound parts","Sports equipment components","Impact energy return applications"]},{"name":"TPU 80A (Semi-flex)","fullName":"Semi-Flex TPU 80A","category":"Flexible","difficulty":"Intermediate","tempNozzle":"220–240°C","tempBed":"30–50°C","tempChamber":"Not required","properties":["Mid-range flexibility — softer than Cheetah, firmer than NinjaFlex","Good for applications needing more compliance than 95A but better shape retention than 85A","Good abrasion resistance","Zack Freedman B-tier"],"settings":["Nozzle: 225–238°C","Bed: 30–50°C","Speed: 20–35mm/s","Direct drive required at this hardness"],"tips":["Direct drive is non-negotiable at 80A","Disable or minimize retraction"],"uses":["Shoe soles and insoles","Flexible grips","Vibration-isolating mounts","Gaskets requiring significant compression"]},{"name":"TPU 75A — Chinchilla (NinjaTek)","fullName":"NinjaTek Chinchilla 75A (Skin-Safe)","category":"Flexible","difficulty":"Advanced","tempNozzle":"225–230°C","tempBed":"20–40°C","tempChamber":"Not required","properties":["Ultra-soft, skin-safe TPU — tested and validated with EpiDerm skin model","75A Shore hardness — very soft and pliable","Low-tack surface texture improves printability over other ultra-soft TPUs","Suitable for extended skin contact — prosthetics and wearables"],"settings":["Nozzle: 225–230°C","Bed: 20–40°C","Speed: 10–20mm/s — extremely slow","Retraction: Essentially disabled","Direct drive mandatory"],"tips":["The slowest-printing filament in the NinjaTek lineup — patience required","Skin-safe validation makes it irreplaceable for prosthetics and medical wearables","Low-tack texture is by design — it helps the filament feed without the drive gear slipping"],"uses":["Prosthetic socket liners and soft interfaces","Wearable medical devices","Orthotic cushioning","Extended skin-contact consumer products"]},{"name":"TPU 40A (Soft)","fullName":"Soft TPU 40A","category":"Flexible","difficulty":"Advanced","tempNozzle":"210–230°C","tempBed":"25–45°C","tempChamber":"Not required","properties":["Extremely soft TPU — compresses like foam rubber under light pressure","Very difficult to print reliably — the material deforms in the extruder","When successful, produces genuinely squishy, rubber-like parts","Zack Freedman C-tier"],"settings":["Nozzle: 215–225°C","Bed: 25–45°C","Speed: 8–15mm/s — very slow","Retraction: Disabled entirely","Direct drive mandatory","No Bowden path possible"],"tips":["Requires a very tight filament path from spool to hot end — any gap causes buckling","Consider PEBA (polyether block amide) as a more printable alternative at similar softness","Enclosing the extruder/idler area to reduce the filament path length helps significantly"],"uses":["Ultra-soft grips and cushioning","Skin tissue simulants","Experimental soft robotics"]},{"name":"TPE 83A (eSUN eLastic)","fullName":"eSUN TPE-83A / eLastic","category":"Flexible","difficulty":"Advanced","tempNozzle":"210–240°C","tempBed":"30–50°C","tempChamber":"Not required","properties":["Thermoplastic elastomer — broader family than TPU, more rubber-like","Extremely stretchy and soft","Lower durometer than most printable TPUs","Challenging to print consistently — similar issues to very soft TPU","Zack Freedman F-tier family"],"settings":["Nozzle: 215–235°C","Speed: 10–20mm/s","Retraction: Disabled","Direct drive mandatory"],"tips":["Extremely stretchy nature makes consistent feeding very difficult","Not recommended unless TPE properties are specifically required over TPU"],"uses":["Seals requiring extreme stretch","Soft pads","Vibration dampening applications"]},{"name":"Eel 90A — Conductive TPU (NinjaTek)","fullName":"NinjaTek Eel 90A Conductive","category":"Flexible","difficulty":"Intermediate","tempNozzle":"225–235°C","tempBed":"20–45°C","tempChamber":"Not required","properties":["Electrically conductive AND flexible — a unique combination","90A Shore hardness — firm but still notably flexible","355% elongation — maintains conductivity through significant deformation","Volume resistivity suitable for soft circuit applications","Only commercially available conductive flexible filament"],"settings":["Nozzle: 228–233°C","Bed: 20–45°C","Speed: 20–30mm/s","Direct drive recommended"],"tips":["Design conductive traces with generous width — resistance increases with deformation","Works as a flex sensor when connected to a microcontroller — resistance changes with flex angle","Not suitable for high-current applications — this is signal-level conductivity"],"uses":["Soft robotics with embedded flex sensing","Wearable electronics with flexible circuit paths","Strain and deformation sensors","Capacitive touch interfaces on flexible surfaces"]},{"name":"Armadillo 75D (NinjaTek)","fullName":"NinjaTek Armadillo 75D (Rigid TPU)","category":"Flexible","difficulty":"Beginner","tempNozzle":"225–245°C","tempBed":"25–50°C","tempChamber":"Not required","properties":["Rigid TPU at 75D Shore hardness — feels and prints like a hard plastic","90% higher abrasion resistance than nylon — exceptional wear performance","No heated bed required — very easy to print","Not flexible in the traditional sense but in the TPU chemical family","Outstanding toughness and impact resistance for a rigid material"],"settings":["Nozzle: 228–242°C","Bed: No heat required (or 30–50°C for better adhesion)","Speed: 40–70mm/s — more like a rigid plastic","Cooling: Moderate"],"tips":["One of the easiest 'flexible filament' products to print — behaves like a rigid material","The go-to for wear parts where nylon isn't wear-resistant enough","Great for any part that slides against another surface repeatedly"],"uses":["Wear-resistant rollers, pulleys, and wheels","Gears in light-duty applications","Shoe outsoles requiring maximum wear resistance","Machine parts with sliding interfaces"]},{"name":"LW-TPU","fullName":"Lightweight Foaming TPU (eSUN)","category":"Flexible","difficulty":"Intermediate","tempNozzle":"210–250°C","tempBed":"30–50°C","tempChamber":"Not required","properties":["eSUN's foaming TPU — expands during extrusion to create lightweight flexible foam","Adjustable foam factor like LW-PLA — density tunable by temperature","Resilient foam structure — springs back under compression","Lighter than standard TPU while retaining flex properties"],"settings":["Nozzle: 220–245°C (higher temp = more expansion)","Flow rate: Reduce to compensate for expansion","Speed: 20–35mm/s","Direct drive recommended"],"tips":["Calibrate expansion at target temperature before printing final parts","Great for RC aircraft components needing light, flexible, crash-absorbent parts"],"uses":["RC model aircraft flexible components","Cushioning and padding","Shoe insoles","Impact-absorbing flexible mounts"]},{"name":"VarioShore TPU","fullName":"VarioShore Variable Shore TPU (colorFabb)","category":"Specialty","difficulty":"Intermediate","tempNozzle":"210–250°C","tempBed":"30–50°C","tempChamber":"Not required","properties":["colorFabb's foaming TPU — stiffness is adjustable by changing nozzle temperature","Lower temperature = softer and denser foam; higher temperature = stiffer expanded foam","Can mimic anything from flexible rubber to rigid foam depending on settings","Reviewed and demonstrated by Zack Freedman in Part 4"],"settings":["Nozzle: 210–245°C (dial in for target foam density)","Speed: 20–40mm/s","Direct drive recommended"],"tips":["Run a temp tower and cut samples to measure density at each temperature","Gradient prints possible — change temperature during print to vary stiffness in different zones","Excellent for shoe insoles and custom orthotics with varying support zones"],"uses":["Custom shoe insoles with gradient cushioning","Variable stiffness parts","RC aircraft bumpers","Ergonomic grips"]},{"name":"SEBS","fullName":"Styrene-Ethylene-Butylene-Styrene","category":"Flexible","difficulty":"Intermediate","tempNozzle":"220–240°C","tempBed":"30–60°C","tempChamber":"Not required","properties":["Hydrogenated SBS — true thermoplastic rubber with genuine rubber look, feel, and behavior","Stretches and snaps back like a rubber band","Never needs drying — completely hydrophobic (the only flexible filament that can skip pre-drying)","Grippy, high-friction tacky surface — sticks where placed","Chemical resistance to UV, water, and many solvents","Can be vapor smoothed with limonene","Zack Freedman A-tier; featured in Part 5"],"settings":["Nozzle: 225–240°C","Bed: 30–60°C","Speed: 15–25mm/s — can be difficult to feed","Retraction: Minimal or disabled","Direct drive strongly recommended"],"tips":["The tacky surface makes it difficult to feed through tubes — short, straight filament paths work best","Filament can jump off the drive gear and wrap around the axle — guide it carefully","The grippy surface is the feature — non-slip parts stay put without glue or fasteners","Vapor smooth with limonene for a cleaner, glossier surface","May arrive stuck to itself on the spool — peel carefully and rewind before loading"],"uses":["Non-slip feet for electronics and tools","Door stops and grip pads","Wheels and rollers that need traction","Rubber-look decorative parts","Grips and handles requiring a tacky feel"]},{"name":"SBS","fullName":"Styrene-Butadiene-Styrene","category":"Flexible","difficulty":"Intermediate","tempNozzle":"220–240°C","tempBed":"60–80°C","tempChamber":"Recommended","properties":["Thermoplastic rubber — the precursor material that ABS is derived from","Usually formulated to feel solid despite being rubber-based","Gorgeous wall quality, breathtaking overhang performance","Nearly imperceptible warping for a styrene-family material","Highly transparent — one of the clearest printable filaments","Can be vapor smoothed with limonene for glass-like clarity","Zack Freedman's 'most underrated filament'; featured in Part 5"],"settings":["Nozzle: 225–240°C","Bed: 65–80°C","Cooling: Low to moderate — minimal like ABS","Enclosure: Recommended to prevent drafts","Speed: 30–60mm/s"],"tips":["Emits fumes during printing — ventilate or use exhaust filtration even if less intense than ABS","The transparency plus limonene smoothing produces some of the best clear prints possible","Overhang performance is exceptional — SBS enters a glassy phase when overheated, holding shape rather than drooping","Rare filament — may require searching specialty vendors","Zack recommends everyone try it at least once"],"uses":["Transparent display cases and enclosures","Lamp shades and light diffusers","Structural parts needing both transparency and toughness","Parts with aggressive overhangs and fine details","Smooth, clear aesthetic models"]},{"name":"PEBA 85A / 90A / 95A","fullName":"Polyether Block Amide","category":"Flexible","difficulty":"Intermediate","tempNozzle":"220–240°C","tempBed":"30–60°C","tempChamber":"Not required","properties":["Elastic TPE with chemical similarities to nylon — not a TPU","~80% energy return on deformation — significantly bouncier than any TPU (TPU returns ~40–50%)","Reversible deformation — springs back from thousands of impacts, sustained compression, and even puncture","Available in 85A, 90A, and 95A hardness variants","Zack Freedman predicts PEBA will eventually supersede TPU for most elastic applications","Featured in Part 5 of Every Single Filament"],"settings":["Nozzle: 220–238°C","Bed: 30–60°C","Speed: 20–35mm/s","Direct drive recommended","Retraction: Minimal — similar to TPU handling"],"tips":["The key differentiator from TPU is energy return — if you want bounce, PEBA is the answer","Multiple manufacturers offer PEBA under different brand names — properties vary, compare datasheets","Excellent for airless ball structures — the energy return is what makes them work like pressurized balls"],"uses":["Airless sporting balls and bouncy toys","High-energy-return shoe midsoles and insoles","Impact-resistant parts requiring repeated compression","Medical prosthetics needing lifelike compliance","Wearables requiring long fatigue life"]},{"name":"PEBA Rebound Air","fullName":"PEBA Foam / PEBA Air (Sariah)","category":"Flexible","difficulty":"Intermediate","tempNozzle":"220–250°C","tempBed":"30–60°C","tempChamber":"Not required","properties":["Foaming PEBA from Sariah — same concept as VarioShore but with PEBA's superior energy return","Adjustable foam factor layer-by-layer — density varies with temperature","At 55% foam factor: density around 0.36 g/cm³ — the lightest printable flexible material Zack has featured","Maintains PEBA's ~80% energy return even in foam form","A Benchy printed at maximum foam floats properly","Featured in Part 5 of Every Single Filament"],"settings":["Nozzle: 225–248°C (higher = more foam)","Bed: 30–60°C","Flow rate: Reduce to compensate for expansion","Speed: 15–30mm/s","Direct drive required"],"tips":["Calibrate foam factor carefully — dial in target density at each zone's temperature","Use gradient temperatures in slicers to vary density across a single part (soft top, firm base)","Currently one of the more exotic flexible materials — source from specialty vendors"],"uses":["Ultra-lightweight flexible structures","Buoyant objects and floatation components","Custom cushioned insoles with gradient support","Lightweight protective padding","Soft robotic components needing minimal mass"]},{"name":"OBC","fullName":"Olefin Block Copolymer","category":"Specialty","difficulty":"Advanced","tempNozzle":"220–250°C","tempBed":"80–100°C","tempChamber":"Helpful","properties":["Dow Chemical material with unique combination of flexibility and stiffness","Non-TPU rubber-like chemistry — polyolefin family","Alternating hard and soft block polymer structure","Available from MatterHackers","Zack Freedman C-tier"],"settings":["Nozzle: 225–245°C","Bed: 85–100°C","Speed: 20–40mm/s"],"tips":["A niche material — only warranted when TPU chemistry specifically doesn't meet requirements","Bed adhesion can be challenging — try multiple surfaces"],"uses":["Specialty flexible parts requiring non-TPU chemistry","Chemical environments incompatible with TPU"]},{"name":"PLA-CF","fullName":"Carbon Fiber PLA","category":"Composites","difficulty":"Intermediate","tempNozzle":"195–230°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["PLA infused with chopped carbon fiber — dramatically increased stiffness over plain PLA","Very high dimensional stability — minimal warping or creep","Matte black surface finish","Reduced weight compared to solid PLA for same rigidity","Hardened steel nozzle required — CF destroys brass nozzles quickly","Zack Freedman S-tier composite"],"settings":["Nozzle: 200–225°C — hardened steel or ruby nozzle required","Bed: 50–60°C","Cooling: High","Speed: 40–70mm/s","Note: Retraction can be reduced — CF materials string less than plain PLA"],"tips":["Hardened nozzle is the #1 requirement — replace the nozzle before your first CF-PLA print","CF-PLA is stiffer but more brittle than plain PLA — design parts with generous radii, avoid sharp notches","Excellent for jigs, fixtures, and tooling that needs to hold tight tolerances","Layer adhesion is slightly reduced compared to plain PLA — keep wall count high for functional parts"],"uses":["Stiff lightweight brackets and mounts","Tooling, jigs, and fixtures","Drone frames and structural RC components","Parts requiring dimensional stability under load","Any application where PLA+ would work but you need more stiffness"]},{"name":"PETG-CF","fullName":"Carbon Fiber PETG","category":"Composites","difficulty":"Intermediate","tempNozzle":"235–260°C","tempBed":"75–85°C","tempChamber":"Not required","properties":["PETG infused with chopped carbon fiber","Combines PETG's chemical resistance and moisture resistance with CF stiffness","Higher stiffness and dimensional stability than plain PETG","Better heat resistance than plain PETG","Hardened nozzle required","Zack Freedman S-tier; widely available from Prusament, Bambu, Elegoo, and others"],"settings":["Nozzle: 240–255°C — hardened nozzle required","Bed: 75–85°C","Cooling: Low to moderate","Speed: 35–65mm/s"],"tips":["One of the best overall composite filaments for desktop printing — accessible and practical","Retains PETG's ease of bed adhesion and low warping","CF-PETG is stiffer than CF-PLA in some formulations — check manufacturer data"],"uses":["Structural drone and RC components","Tool fixtures and manufacturing aids","Stiff functional parts needing moisture resistance","Lightweight brackets requiring dimensional stability"]},{"name":"PETG-GF","fullName":"Glass Fiber PETG","category":"Composites","difficulty":"Intermediate","tempNozzle":"230–260°C","tempBed":"75–85°C","tempChamber":"Not required","properties":["PETG with glass fiber reinforcement","Stiffer than plain PETG with improved heat resistance","Slightly less abrasive on nozzles than CF variants — hardened nozzle still recommended","Slightly tougher than CF-PETG due to glass fiber flexibility","Available from Elegoo, Bambu, and Polymaker"],"settings":["Nozzle: 235–255°C — hardened nozzle recommended","Bed: 75–85°C","Speed: 35–65mm/s"],"tips":["A good alternative to CF-PETG when maximum stiffness is less important than toughness","Less brittle than CF-PETG — GF parts survive impacts better"],"uses":["Structural functional parts","Reinforced enclosures","Light industrial tooling"]},{"name":"PETG-ESD","fullName":"ESD-Safe PETG (Polymaker Fiberon)","category":"Composites","difficulty":"Intermediate","tempNozzle":"230–255°C","tempBed":"75–85°C","tempChamber":"Not required","properties":["PETG with carbon loading for electrostatic discharge protection","Surface resistivity in ESD-safe range (10⁶–10¹¹ ohms typically)","Prevents static buildup that can damage sensitive electronics","Available from Polymaker Fiberon and MatterHackers","Maintains most of PETG's printability"],"settings":["Nozzle: 235–250°C — hardened nozzle recommended","Bed: 75–85°C","Speed: 35–60mm/s"],"tips":["Verify the specific surface resistivity of your brand — ESD ratings vary","Design parts for consistent wall thickness — thin walls may have inconsistent conductivity","Important for semiconductor and electronics manufacturing fixtures"],"uses":["PCB handling trays and carriers","Electronics assembly fixtures and tooling","Semiconductor fabrication components","Anti-static storage containers"]},{"name":"PA6-CF","fullName":"Nylon PA6 Carbon Fiber","category":"Composites","difficulty":"Advanced","tempNozzle":"250–280°C","tempBed":"70–90°C","tempChamber":"Recommended","properties":["Nylon PA6 reinforced with chopped carbon fiber","Exceptional stiffness, heat resistance, and strength in one material","Heat resistance: ~150°C under load","Near-metal stiffness possible in optimal printing conditions","Very hygroscopic — must be kept dry","Hardened nozzle mandatory","Zack Freedman B-tier"],"settings":["Nozzle: 255–275°C — hardened nozzle required","Bed: 70–90°C on garolite or PEI","Chamber: Strongly recommended","Cooling: Minimal","Speed: 25–50mm/s","Dry at 80°C for 8–12 hours before printing"],"tips":["The combination of nylon toughness and CF stiffness makes this one of the most capable composite filaments","Garolite G10 bed surface is strongly recommended — nylon adhesion on PEI can be inconsistent","Moisture is critical — even a small amount degrades strength significantly","Annealing after printing (80°C for 1–2 hours) can improve crystallinity and strength"],"uses":["Drone frames and structural UAV components","High-load mechanical brackets","Industrial tooling and fixtures","Structural aerospace parts","Near-aluminum performance parts"]},{"name":"PA6-GF","fullName":"Nylon PA6 Glass Fiber","category":"Composites","difficulty":"Advanced","tempNozzle":"250–280°C","tempBed":"70–90°C","tempChamber":"Recommended","properties":["Nylon PA6 reinforced with glass fibers","Combines nylon's toughness with GF stiffness — Zack Freedman S-tier composite","Slightly tougher than PA6-CF while still very stiff","Heat resistance ~150°C","Hygroscopic — must be dried","Hardened nozzle required"],"settings":["Nozzle: 255–275°C — hardened nozzle","Bed: 70–90°C garolite or PEI","Chamber: Recommended","Cooling: Minimal"],"tips":["Often preferred over PA6-CF when impact resistance matters more than maximum stiffness","Glass fibers produce less brittle failure than carbon fibers under impact","Bambu's PA6-GF is one of the most accessible versions on the market"],"uses":["High-load structural parts needing toughness","Engineering components in demanding environments","Structural brackets and mounts","Functional replacements for glass-filled injection molded nylon parts"]},{"name":"PAHT-CF","fullName":"High-Temperature Nylon Carbon Fiber","category":"Composites","difficulty":"Advanced","tempNozzle":"280–310°C","tempBed":"90–110°C","tempChamber":"Required","properties":["High-temperature polyamide with carbon fiber reinforcement","Heat resistance: 175°C+ under load — significantly higher than PA6-CF","Outstanding stiffness and strength at elevated temperatures","Bambu PAHT-CF is the most widely used version","Requires higher temperatures and enclosure than PA6-CF"],"settings":["Nozzle: 285–300°C — high-temp capable hot end required","Bed: 95–110°C","Chamber: Required","Cooling: None","Speed: 25–45mm/s","Dry thoroughly before use"],"tips":["Requires a high-temperature capable printer — stock Bambu X1C handles this well","The 175°C+ heat resistance opens up under-hood automotive and near-heat-source applications","All standard CF printing rules apply: hardened nozzle, dry storage, minimal retraction"],"uses":["Under-hood automotive components","Aerospace brackets near heat sources","Industrial tooling exposed to process heat"]},{"name":"PET-CF","fullName":"PET Carbon Fiber","category":"Composites","difficulty":"Advanced","tempNozzle":"260–290°C","tempBed":"85–100°C","tempChamber":"Recommended","properties":["PET (not PETG) with carbon fiber reinforcement","Very stiff, dimensionally stable, and heat resistant","Better heat resistance than PETG-CF","Bambu's PET-CF is the most common version","Reviewed by Zack Freedman (A-tier for the CF-PET category)"],"settings":["Nozzle: 265–285°C — hardened nozzle required","Bed: 90–100°C","Chamber: Recommended"],"tips":["Similar to printing PA6-CF but with better moisture stability","A strong choice for stiff structural aerospace-adjacent parts"],"uses":["Structural aerospace parts","High-temp stiff structural components","Industrial tooling"]},{"name":"ASA-CF","fullName":"ASA Carbon Fiber (Bambu)","category":"Composites","difficulty":"Advanced","tempNozzle":"240–265°C","tempBed":"90–110°C","tempChamber":"Recommended","properties":["ASA with CF reinforcement — stiff, UV-resistant, outdoor-capable composite","The only CF composite with genuine UV stability for outdoor use","Combines CF's stiffness and dimensional stability with ASA's weatherproofing","Hardened nozzle required"],"settings":["Nozzle: 245–260°C — hardened nozzle","Bed: 95–110°C","Chamber: Recommended"],"tips":["The obvious choice for outdoor structural components needing stiffness","RC aircraft components that will fly in sunlight — CF-PETG would UV-degrade over time"],"uses":["Outdoor structural brackets and enclosures","RC aircraft components for outdoor flying","Stiff UV-exposed structural parts"]},{"name":"PC-CF","fullName":"PC Carbon Fiber (Prusament / Bambu)","category":"Composites","difficulty":"Advanced","tempNozzle":"255–285°C","tempBed":"100–115°C","tempChamber":"Required","properties":["Carbon fiber reinforced polycarbonate","Combines PC's exceptional heat resistance and impact strength with CF stiffness","Heat resistance: ~130°C+ under load","One of the most capable desktop composite materials","Zack Freedman A-tier"],"settings":["Nozzle: 260–280°C — hardened nozzle required","Bed: 105–115°C","Chamber: Required"],"tips":["Requires enclosure like pure PC — all the same discipline applies","The CF addition helps reduce PC's warping tendency","Very strong and stiff — a legitimate structural material for demanding applications"],"uses":["Aerospace structural components","High-stress industrial tooling","Structural brackets requiring both heat resistance and stiffness"]},{"name":"PPS-CF","fullName":"PPS Carbon Fiber","category":"Composites","difficulty":"Expert","tempNozzle":"320–360°C","tempBed":"120–150°C","tempChamber":"Required (100°C+)","properties":["Polyphenylene sulfide with carbon fiber reinforcement","CF addition raises glass transition temperature to 260°C vs base PPS's 85°C Tg","Survives years immersed in boiling turpentine — extreme chemical resistance","Inherently flame retardant","Rings like metal when struck — genuinely sounds like cast iron","Extremely brittle despite the metallic feel — high stiffness without corresponding toughness","Zack Freedman Part 5 featured material"],"settings":["Nozzle: 330–355°C — requires high-temp industrial printer","Bed: 130–150°C","Chamber: 100°C+","Cooling: None","Speed: 15–30mm/s"],"tips":["The metallic sound when struck is a real and distinctive property — you can print percussion instruments","Despite feeling like steel, one sharp impact will shatter it — design for compression, not impact","Requires industrial-grade hardware — not printable on consumer machines","The 260°C heat resistance under load is extraordinary for a printable material"],"uses":["Chemical-resistant structural parts in extreme environments","Flame-retardant housings for harsh industrial use","Components requiring simultaneous extreme chemical and heat resistance","Experimental acoustic applications (it rings!)"]},{"name":"PEEK-CF","fullName":"PEEK Carbon Fiber","category":"Composites","difficulty":"Expert","tempNozzle":"360–400°C","tempBed":"120–160°C","tempChamber":"Required (90°C+)","properties":["Carbon fiber reinforced PEEK","CF acts as nucleation sites for PEEK's crystal formation — dramatically improves consistency and reduces warping","4x stiffer than unfilled PEEK","Stronger, stiffer, more heat-resistant, and easier to print than unfilled PEEK","The spool self-unwinds due to the filament's stiffness — requires a guided path","Destroys hot ends if left idle or allowed to cool with material loaded","Zack Freedman Part 5 featured material"],"settings":["Nozzle: 370–390°C — requires specialty high-temp hardware","Bed: 130–160°C","Chamber: 90°C+","Cooling: None","Speed: 15–25mm/s","Custom G-code may be needed for temperature control"],"tips":["Never let the hotend idle with CF-PEEK loaded — crystallization causes permanent clogs","Manage the spool actively — it will unwind itself due to filament stiffness","During testing, Zack lost two heat breaks and nozzles — have spares","10% CF achieves massive improvement — CF-PEEK outperforms unfilled PEEK in almost every metric","Only 0.001% of printers can handle this material — verify your hardware first"],"uses":["Aerospace structural components","Medical implants and surgical tools","Extreme engineering applications","Defense and space applications"]},{"name":"PEEK-GF20","fullName":"PEEK Glass Fiber 20%","category":"Composites","difficulty":"Expert","tempNozzle":"360–400°C","tempBed":"120–160°C","tempChamber":"Required (90°C+)","properties":["20% glass fiber PEEK — double the fiber content vs CF-PEEK","Glass fibers are more flexible than carbon fibers — less likely to snap, warp, or misbehave","Better printability than CF-PEEK for production runs","Slightly lower tensile strength than CF-PEEK but easier supports removal and more consistent prints","Better for sellers/service bureaus — fewer failed prints","Zack Freedman Part 5 featured material"],"settings":["Nozzle: 365–390°C","Bed: 130–155°C","Chamber: 90°C+","Cooling: None","Speed: 15–25mm/s"],"tips":["When a customer needs PEEK parts and print reliability matters more than ultimate performance, GF-PEEK is the choice","Weaker interlayer bonds than CF-PEEK — but for some geometries, this makes support removal easier","Same hardware requirements as CF-PEEK — industrial printer required"],"uses":["PEEK parts production for clients where reliability matters","PEEK applications where some impact resistance is needed","Production aerospace and medical components"]},{"name":"PEI-CF","fullName":"PEI / ULTEM Carbon Fiber","category":"Composites","difficulty":"Expert","tempNozzle":"350–380°C","tempBed":"120–160°C","tempChamber":"Required","properties":["Carbon fiber reinforced ULTEM 9085","4x stiffer than unfilled PEI","So stiff the filament itself is difficult to load — can snap during loading","Flame retardant, biocompatible, and aerospace-grade even without CF","3DXTech is the main manufacturer","Zack Freedman Part 5 featured material"],"settings":["Nozzle: 355–375°C","Bed: 130–155°C","Chamber: Required","Speed: 10–20mm/s"],"tips":["The filament's stiffness means it will snap at the spool if routed with sharp bends","Lay out the filament path in a wide arc before loading","Even a successful print is an achievement — this is one of the most challenging filaments available"],"uses":["Aerospace structural parts","Extreme-environment engineering components","Flame-retardant structural applications"]},{"name":"PEI-GF","fullName":"PEI Glass Fiber 30%","category":"Composites","difficulty":"Expert","tempNozzle":"350–380°C","tempBed":"120–155°C","tempChamber":"Required","properties":["30% glass fiber filled PEI — the highest-filled super polymer Zack has featured","Tensile modulus of ~8.8 GPa — approaching 9,000 MPa","Extremely dense and stiff","Only printable at 10mm/s — extremely slow print speeds required","Does not warp, soften, conduct electricity, or react to most chemicals","Zack Freedman Part 5 featured material"],"settings":["Nozzle: 355–375°C","Bed: 130–150°C","Chamber: Required","Speed: 10mm/s maximum — any faster causes layer delamination and poor surface quality","Custom cooling dwell times between layers may be needed"],"tips":["At 10mm/s, a simple print can take 3+ hours — plan accordingly","The surface quality is naturally excellent despite slow printing — molten PEI-GF is very creamy and viscous","Among the most indestructible printable materials — essentially cannot be worn down, dissolved, or electrically stressed"],"uses":["Ultra-demanding aerospace structural components","Extreme chemical environment parts","Electrical isolation components in high-voltage environments","Parts that must survive literally everything"]},{"name":"NylonX","fullName":"NylonX — CF Nylon (MatterHackers)","category":"Composites","difficulty":"Advanced","tempNozzle":"250–275°C","tempBed":"70–90°C","tempChamber":"Recommended","properties":["MatterHackers' award-winning 20% carbon fiber nylon","Described as a potential aluminum replacement for desktop printers","Exceptional stiffness and strength with low density","Hardened nozzle and garolite bed recommended"],"settings":["Nozzle: 255–270°C — hardened nozzle","Bed: 70–90°C garolite","Chamber: Recommended"],"tips":["20% CF loading is higher than most commercial CF nylons — more stiffness but also more abrasive","The garolite bed surface is particularly important at this CF content level"],"uses":["Near-metal structural parts","Jigs and fixtures","Performance mechanical components"]},{"name":"NylonG","fullName":"NylonG — GF Nylon (MatterHackers)","category":"Composites","difficulty":"Advanced","tempNozzle":"250–275°C","tempBed":"70–90°C","tempChamber":"Recommended","properties":["MatterHackers' glass fiber nylon","Slightly tougher than NylonX due to glass fiber flex","Very stiff and heat resistant","Same printing requirements as NylonX"],"settings":["Nozzle: 255–270°C","Bed: 70–90°C garolite","Chamber: Recommended"],"tips":["Choose NylonG when impact resistance matters more than maximum stiffness vs NylonX"],"uses":["Structural parts needing toughness + stiffness","Engineering components","Industrial tooling"]},{"name":"NylonK","fullName":"NylonK — Kevlar Nylon (MatterHackers)","category":"Composites","difficulty":"Advanced","tempNozzle":"250–275°C","tempBed":"70–90°C","tempChamber":"Recommended","properties":["Kevlar-reinforced nylon from MatterHackers","Unique combination: nylon's toughness + Kevlar's impact resistance","Lightweight with outstanding energy absorption","Less abrasive on nozzles than carbon fiber variants"],"settings":["Nozzle: 255–270°C","Bed: 70–90°C garolite","Chamber: Recommended"],"tips":["Kevlar fiber can be harder to cut in post-processing than CF — plan for this","The impact resistance profile is different from CF — better for shock loading"],"uses":["Impact-resistant structural parts","Lightweight aerospace-adjacent components","Defense and protective equipment"]},{"name":"Ultrafuse 316L","fullName":"BASF Ultrafuse 316L Metal FFF","category":"Specialty","difficulty":"Expert","tempNozzle":"230–250°C","tempBed":"80–100°C","tempChamber":"Not required","properties":["Stainless steel filament that is debound and sintered into solid metal parts","Workflow: Print → catalytic debind → sinter at 1380°C → fully dense stainless steel","Final part is 316L stainless steel — ~98% density","Part shrinks ~15–20% during sintering — must be scaled up in slicer","Available from MatterHackers; reviewed by Zack in Part 4"],"settings":["Nozzle: 235–248°C","Bed: 80–100°C","Speed: 20–40mm/s — slow for dimensional accuracy","Special slicing rules: scale up by ~120%, avoid sharp overhangs that won't sinter well"],"tips":["Debinding and sintering require a service bureau or specialized furnace — most users outsource this step","Design for sintering shrinkage — every dimension shrinks about 15–20%, consistently","Avoid undercuts and features that will sag under their own weight at sintering temperatures","This is genuinely metal — final parts are magnetic, weldable, and machinable"],"uses":["Functional stainless steel parts without CNC machining","Custom hardware and fasteners","Medical device components (316L is biocompatible)","Hydraulic and pneumatic fittings","Tooling inserts and wear components"]},{"name":"TPI","fullName":"Thermoplastic Polyimide","category":"High-Performance","difficulty":"Expert","tempNozzle":"445°C","tempBed":"220°C","tempChamber":"150°C (mandatory)","properties":["The hottest printable filament ever demonstrated — 445°C nozzle, 220°C bed, 150°C chamber","50% stronger than ULTEM 1010 at 170°C continuous service temperature","Continuous service temperature: 230°C+","Extremely high viscosity when molten — essentially doesn't warp due to rapid solidification","Capable of printing aggressive overhangs and bridges that defeat other super polymers","Zack Freedman F-tier — hardware requirements put it out of reach for virtually everyone","Featured in Zack Freedman Part 5"],"settings":["Nozzle: 445°C — requires specialty hardware with platinum heating elements","Bed: 220°C","Chamber: 150°C mandatory","Pre-drying: 150°C oven (not 100°C — fires spool)","Speed: Very slow — 15–20mm/s maximum"],"tips":["Drying TPI requires 150°C — standard 100°C drying temperatures will fail; excessive heat causes thermal runaway","Zack's $250 spool caught fire in a toaster oven during drying — use an industrial oven with proper temperature control","When TPI clogs, no other filament is hot enough to clear it — only TPI itself can purge TPI","Requires hardware like the Vision Miner 22 IDEX — no consumer printer can attempt this","If PEI isn't performing, run CF-PEI; if that isn't enough, TPI is the ceiling"],"uses":["Highest-temperature continuous exposure applications (230°C+)","Aerospace thermal insulation structures","Research and defense applications requiring maximum thermal performance"]},{"name":"PEEK","fullName":"Polyether Ether Ketone","category":"High-Performance","difficulty":"Expert","tempNozzle":"360–400°C","tempBed":"120–160°C","tempChamber":"Required (90°C+)","properties":["The reference ultra-performance polymer — benchmark for all other super polymers","Tensile strength: ~100 MPa; heat resistance: 250°C continuous service","Excellent chemical resistance — resists almost all industrial solvents and fluids","Biocompatible — used in spinal fusion implants and other medical devices","Semi-crystalline — must crystallize during printing for full strength, which causes warp risk","Zack Freedman C-tier — hardware requirements, not material limitations"],"settings":["Nozzle: 370–395°C","Bed: 130–155°C","Chamber: 90°C+","Cooling: None","Speed: 15–25mm/s","Pre-dry: 150°C for 4–6 hours"],"tips":["The crystallization window is very narrow — maintaining constant temperature throughout the build is critical","PEEK only reaches full strength when properly crystallized — rushing cooling results in amorphous PEEK with ~70% of rated properties","Anneal parts post-print for maximum crystallinity: 150°C for 1 hour minimum","Vision Miner, Roboze, and 3DXTech hardware are the typical choices for PEEK printing","CF-PEEK is strongly preferred over unfilled PEEK — easier to print and better performance"],"uses":["Aerospace structural brackets","Spinal fusion cages and orthopedic implants","Chemical processing components","High-vacuum equipment","Semiconductor manufacturing tooling"]},{"name":"PEKK-C","fullName":"PEKK Crystalline 70/30 Blend","category":"High-Performance","difficulty":"Expert","tempNozzle":"340–380°C","tempBed":"120–150°C","tempChamber":"Required","properties":["Original PEKK formulation with 70% ether / 30% ketone ratio","Designed for machining, not printing — highly prone to crystallization and warping during printing","The first PEKK available to the 3D printing market ~6 years ago","Superseded by PEKK-A for printing applications","Still manufactured for CNC machining use cases","Zack Freedman Part 5 featured material"],"settings":["Nozzle: 350–375°C","Bed: 130–145°C","Chamber: Required","Speed: 10–20mm/s"],"tips":["Use PEKK-A instead — PEKK-C is the old formula; PEKK-A is strictly better for printing","If you receive PEKK-C by accident, treat it as PEEK with a shorter crystallization window"],"uses":["Legacy aerospace specifications requiring PEKK-C specifically"]},{"name":"PEKK-A","fullName":"PEKK-A Amorphous 60/40 Blend","category":"High-Performance","difficulty":"Expert","tempNozzle":"330–370°C","tempBed":"120–145°C","tempChamber":"Required","properties":["Revised PEKK formulation with 60% ether / 40% ketone — dramatically reduces crystallization tendency","Prints 10°C cooler and 3x faster than PEKK-C","Essentially impossible to accidentally crystallize — a major advantage over both PEEK and PEKK-C","Can be intentionally annealed post-print to achieve potentially higher strength than PEEK","Zack Freedman A-tier; featured in Part 5"],"settings":["Nozzle: 335–365°C","Bed: 125–145°C","Chamber: Required","Speed: 20–35mm/s"],"tips":["The current best option in the PEEK/PEKK family for desktop printing","Post-print annealing is optional but recommended for maximum strength — follow manufacturer protocol","Much more forgiving than PEEK — temperature windows are wider","FAA-certified grades exist for aircraft interior applications"],"uses":["Aircraft interior structural components","Aerospace and defense brackets","High-temp medical devices","Premium engineering applications that require post-anneal strength"]},{"name":"Victrex AM200","fullName":"Victrex AM200 (PAEK)","category":"High-Performance","difficulty":"Expert","tempNozzle":"~370°C","tempBed":"130–150°C","tempChamber":"Required","properties":["Victrex's precision-engineered PAEK polymer designed to dethrone PEEK","25°C crystallization sweet spot near printing temperature — far wider than PEEK's 5°C window","Should produce cleaner models with stronger structures with less parameter tuning — in theory","Still in open beta as of 2025 — real-world performance requires significant experimentation","Cost: over $1,300 per kilogram","Zack Freedman Part 5 featured material"],"settings":["Nozzle: ~370°C","Bed: 135–150°C","Chamber: Required","Crystallization behavior requires careful temperature management — overheated zones misbehave"],"tips":["The wider crystallization window is the key innovation — far more forgiving than PEEK","Any section of the print that overheats will crystallize incorrectly — thin cross-sections and aggressive overhangs are still challenges","At $1,300/kg, failure is extremely expensive — run extensive test prints before full production","Zack could only achieve one improvement at a time (cleaner OR stronger OR less parameter tuning)","The potential is enormous; the current state requires patience and experimentation"],"uses":["Next-generation aerospace research","Applications where PEEK's crystallization control is the bottleneck","R&D and experimental high-performance applications"]},{"name":"PEI / ULTEM 9085","fullName":"Polyetherimide ULTEM 9085","category":"High-Performance","difficulty":"Expert","tempNozzle":"340–380°C","tempBed":"120–155°C","tempChamber":"Required","properties":["Aerospace-grade thermoplastic used in aircraft interiors","FAA-certified grades available — FST (flame, smoke, toxicity) rated","Inherently flame retardant without additives","Biocompatible — sterilizable for medical applications","Tensile strength: ~70–90 MPa; heat resistance: ~170–180°C","Zack Freedman: ULTEM 1010 grade is A-tier; 9085 is F-tier for cost/availability"],"settings":["Nozzle: 350–375°C","Bed: 130–150°C","Chamber: Required (90°C+)","Speed: 15–25mm/s"],"tips":["ULTEM 9085 is the most common grade — used for aircraft interior structures","ULTEM 1010 is the stronger grade — better for load-bearing parts","Both grades require industrial hardware — not printable on consumer machines","Dry at 150°C before printing — absorbs moisture aggressively"],"uses":["Aircraft cabin interior structural components","Medical device housings requiring autoclave sterilization","Defense and aerospace structural brackets","Flame-retardant industrial components"]},{"name":"PPSU","fullName":"Polyphenylsulfone (Prusament)","category":"High-Performance","difficulty":"Expert","tempNozzle":"360–390°C","tempBed":"130–160°C","tempChamber":"Required","properties":["Top sulfone polymer — above PSU and PES in performance","Outstanding hydrolytic stability — retains strength after repeated steam sterilization","Biocompatible — FDA-compliant grades available","Chemical resistance to nearly all clinical and industrial chemicals","Heat resistance: ~220°C continuous service"],"settings":["Nozzle: 365–385°C","Bed: 135–155°C","Chamber: Required"],"tips":["The premier material for autoclavable medical devices","Requires industrial printing hardware — same tier as PEEK/PEI","Dry aggressively before printing"],"uses":["Autoclavable surgical instruments and trays","Medical device housings","Chemical processing equipment","Sterilizable laboratory tools"]},{"name":"PSU","fullName":"Polysulfone","category":"High-Performance","difficulty":"Expert","tempNozzle":"340–380°C","tempBed":"120–145°C","tempChamber":"Required","properties":["The first sulfone polymer — one step below PPSU in performance","Autoclavable and biocompatible","Good chemical resistance","Heat resistance: ~170°C continuous service","Zack Freedman B-tier"],"settings":["Nozzle: 345–370°C","Bed: 125–145°C","Chamber: Required"],"tips":["Choose PPSU over PSU if your hardware can handle both — PPSU is strictly better"],"uses":["Medical devices","Chemical processing","Sterilizable tools"]},{"name":"PPS","fullName":"Polyphenylene Sulfide","category":"High-Performance","difficulty":"Expert","tempNozzle":"300–360°C","tempBed":"120–150°C","tempChamber":"Required","properties":["Semi-crystalline polymer with extreme chemical resistance","Survives immersion in most industrial solvents including boiling turpentine","Inherently flame retardant","Base PPS: Tg of only ~85°C — misleadingly low for a super polymer","PPS-CF raises this dramatically: stiff to 260°C with CF reinforcement","Zack Freedman C-tier (base PPS)"],"settings":["Nozzle: 310–350°C","Bed: 125–145°C","Chamber: Required"],"tips":["Unfilled PPS has limited structural use at temperature — use PPS-CF for heat resistance","The chemical resistance is the primary reason to use PPS — it beats almost everything else"],"uses":["Chemical processing in extreme solvent environments","Flame-retardant structural parts","Plating and chemical bath components"]},{"name":"PVDF","fullName":"Polyvinylidene Fluoride","category":"High-Performance","difficulty":"Expert","tempNozzle":"230–270°C","tempBed":"80–120°C","tempChamber":"Not required","properties":["Fluoropolymer — outstanding chemical resistance to aggressive acids, bases, halogens","UV stable and radiation resistant — used in nuclear applications","Unusually, does not require pre-drying — essentially zero moisture absorption","Lower print temperature than most super polymers (~250°C) — more accessible hardware-wise","Zack Freedman F-tier — bed adhesion and warp are severe challenges"],"settings":["Nozzle: 235–260°C","Bed: 90–120°C — PVDF-specific adhesion solutions needed","Speed: 15–30mm/s","Cooling: Minimal"],"tips":["Bed adhesion is the primary challenge — PVDF bonds to very few surfaces","For small parts, PVDF sheet on the bed is the most reliable solution","The F-tier rating is about printability only — the material itself is outstanding for its applications"],"uses":["Chemical handling tubing and fittings","Pharmaceutical manufacturing components","Nuclear radiation shielding and containment","Semiconductor processing components exposed to aggressive etch chemistries"]},{"name":"COC (Zetamix Epsilon)","fullName":"Cyclic Olefin Copolymer — Zetamix Epsilon 2.2","category":"High-Performance","difficulty":"Expert","tempNozzle":"290°C","tempBed":"No adhesion to anything (atmospheric pressure only)","tempChamber":"Not required","properties":["Only filament made from cyclic olefin copolymer — utterly unique material class","Engineered for microwave waveguides — near-transparent to RF frequencies (Wi-Fi, Bluetooth, 5G, radar)","Dielectric constant of 2.2 — makes EM waves travel like a fiber optic guides light","Polyolefin family — shares traits like terrible bed adhesion and zero moisture absorption","Extremely brittle — harder than typical polyolefins despite the family resemblance","Zack Freedman's most diabolically difficult print — Part 5 featured material"],"settings":["Nozzle: 290°C maximum","Speed: 5mm/s maximum — slower than any other printable material","Layer height: 0.1mm maximum","Bed: Nothing provides adhesion — atmospheric pressure is the only thing keeping parts on the build plate","Heat creep and jamming risk is extreme at these slow speeds"],"tips":["Zack paused the print every few minutes to eject and reload broken filament — this is normal","Load filament like performing laparoscopic surgery — extreme care required","The functional application (RF waveguides) also requires a metallic inner coating (liquid gallium or similar) — the filament is just the substrate","At 5mm/s and 0.1mm layer height, a small print takes many hours","Requires altitude awareness — Zack (Colorado) noted lower atmospheric pressure reduced bed adhesion further"],"uses":["RF and microwave waveguide substrates","Wi-Fi and antenna system components","High-frequency electromagnetic research","Custom antenna lenses and wave-focusing components"]},{"name":"LCP","fullName":"Liquid Crystal Polymer","category":"High-Performance","difficulty":"Expert","tempNozzle":"~350°C","tempBed":"~120°C","tempChamber":"Required","properties":["The only fully crystalline printable filament — every molecule is in a repeating crystal pattern even when molten","Stronger than PEEK on the XY plane — extraordinary tensile strength in the print direction","Highly anisotropic — extremely strong in XY but weak in Z-axis","Shear thinning fluid — becomes less viscous when forced faster through the nozzle","Molecules form flat sheets when molten, cooling into tightly packed wire-like bundles","Naturally knobbly, rough surface texture — not a sign of over-extrusion","Zack received ~30g from a viewer who apparently smuggled it from a research lab; Part 5"],"settings":["Nozzle: ~350°C (exact temps depend on formulation)","Bed: ~120°C","Chamber: Required","Speed: Print hot and slow for better strength; print cooler and faster for smoother surface — you can't have both","Ironing every layer massively improves surface quality but multiplies print time"],"tips":["Design for XY strength — orient the strongest axis of your part to align with print direction","No crystallization dwell times, vacuum chambers, or lengthy parameter tuning required — unlike PEEK","The print speed affects viscosity — this is a unique property of LCPs not seen in other filaments","Commercially available as ENREF and other trade names — not just a research material","Practically indestructible on the XY plane — be aware of the Z-axis weakness in part design"],"uses":["Extreme strength parts optimized for XY loading","Aerospace structural components designed around anisotropy","Research and experimental high-performance applications","Parts requiring PEEK-exceeding XY tensile performance"]},{"name":"Wood Fill","fullName":"Wood-Filled PLA","category":"Specialty","difficulty":"Beginner","tempNozzle":"190–220°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["PLA blended with wood fibers (typically 20–40% by weight)","Can be sanded, stained, and varnished like real wood","Higher print temperatures produce darker, burnt-wood appearance","Lower density than standard PLA due to wood fiber content","Abrasive on brass nozzles — hardened steel recommended for prolonged use","Available from Prusament, eSUN, Elegoo, and most major brands"],"settings":["Nozzle: 195–220°C (vary temperature for color control)","Bed: 50–60°C","Cooling: High","Speed: 30–50mm/s — slower than standard PLA"],"tips":["Don't use small layer heights — wood fibers increase clog risk with 0.1mm layers","Use a 0.4mm or larger nozzle — 0.2mm nozzles clog easily with wood-fill","The temperature-color effect is real and useful — vary nozzle temp to create 'burned' wood gradients","Sand along the print direction for most natural look","Apply wood stain before varnish for best color depth"],"uses":["Decorative objects with natural wood aesthetic","Furniture prototypes and architectural models","Props and set pieces","Gifts and personalized items wanting an organic feel"]},{"name":"Metal Fill","fullName":"Metal-Filled PLA","category":"Specialty","difficulty":"Beginner","tempNozzle":"190–210°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["PLA loaded with metal powder (bronze, copper, iron, or gold typically)","Heavy and dense for the size — feels and sounds like metal","Can be polished with progressively finer sandpaper for a true metallic sheen","Purely aesthetic — no functional metal properties","Hardened nozzle required — metal powder is extremely abrasive","Zack Freedman F-tier — aesthetic only, destroys nozzles"],"settings":["Nozzle: 195–210°C — hardened nozzle mandatory","Bed: 50–60°C","Speed: 25–45mm/s"],"tips":["A brass nozzle will be noticeably worn after a single spool — use hardened steel","Polishing process: sand from 120 grit up to 2000+ grit, then metal polish (Brasso, etc.)","Iron-fill can be rusted intentionally with hydrogen peroxide spray for aged metal look","Cool bronze-fill prints on a cold surface to avoid deformation from residual heat"],"uses":["Trophy and award surfaces","Costume jewelry and props","Display models wanting metal appearance without cost of actual metal printing","Decorative busts and sculptures"]},{"name":"MoldLay","fullName":"MoldLay Investment Casting Filament (MatterHackers)","category":"Specialty","difficulty":"Intermediate","tempNozzle":"160–180°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["MatterHackers' proprietary filament designed to vaporize completely during investment casting","Prints at unusually low temperature — 160–180°C nozzle","Zero warping — one of the flattest-printing filaments available","Leaves no carbon residue in the mold — unlike standard PLA burnout","Enables jewelry casting, dental applications, and small metal part production"],"settings":["Nozzle: 162–175°C","Bed: 50–60°C (heated bed not required but recommended)","Speed: 30–60mm/s","Cooling: Moderate"],"tips":["Print with low infill (5–15%) or fully hollow to reduce burnout time and thermal stress on mold","Burnout schedule: ramp to 730°C, hold for minimum 1–2 hours for complete burnout","Minimal post-processing of the print is needed — investment plaster captures fine details faithfully","Works with silver, gold, brass, bronze, pewter, and aluminum alloys"],"uses":["Jewelry (rings, pendants, earrings, cufflinks)","Small bronze and silver art castings","Dental frameworks and prosthetics (with appropriate biocompatible casting alloys)","Custom production of small metal hardware"]},{"name":"Conductive PLA/TPU","fullName":"Carbon-Conductive Filament","category":"Specialty","difficulty":"Intermediate","tempNozzle":"190–230°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["PLA or TPU infused with carbon black or carbon fiber for electrical conductivity","Volume resistivity typically 10² to 10⁵ ohm-cm — suitable for low-current circuits","Can function as a resistive heater at appropriate current levels","Compatible with all standard PLA/TPU printing conditions","Available from MatterHackers, Prusament, and specialty vendors"],"settings":["Nozzle: 195–225°C","Bed: 50–60°C","Speed: 30–60mm/s","Note: Carbon loading increases viscosity — may need higher temp than standard PLA"],"tips":["Not suitable for high-current applications — this is signal-level and low-power conductivity","Resistance varies with print direction — print parallel traces for consistent resistance","Can be combined with standard PLA in multi-material prints for embedded circuits","Touch sensors work well — human body capacitance is detectable through conductive PLA layers"],"uses":["Simple printed circuit traces","Capacitive touch sensors and buttons","ESD grounding paths","Resistive heating elements","Soft robotics with embedded sensing"]},{"name":"Glow-in-the-Dark","fullName":"Phosphorescent PLA","category":"Specialty","difficulty":"Beginner","tempNozzle":"190–230°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Strontium aluminate phosphorescent pigment in PLA base","Absorbs UV and visible light — emits green (or other colors) glow in darkness","Brittle and very abrasive — strontium aluminate is harder than brass","Glow brightness and duration varies by brand quality","Available from Bambu, eSUN, Elegoo, and many others"],"settings":["Nozzle: 200–225°C — hardened steel nozzle strongly recommended","Bed: 50–60°C","Speed: 30–50mm/s"],"tips":["Never use a brass nozzle — the phosphorescent particles will wear it out within a single spool","Higher UV exposure = longer and brighter glow — design for light exposure in use","Print thicker walls — thin sections don't absorb or re-emit as much light","Structurally equivalent to standard PLA — treat it as a cosmetic choice only"],"uses":["Safety signage and emergency exit markers","Cosplay accessories with night effects","Children's room decor","Novelty items and gifts"]},{"name":"PCL","fullName":"Polycaprolactone","category":"Specialty","difficulty":"Beginner","tempNozzle":"60–90°C","tempBed":"Not required","tempChamber":"Not required","properties":["Ultra-low melting point thermoplastic — softens at 60°C, can be reshaped in hot water","Can be shaped, reshaped, and re-reshaped by hand when warm","Biocompatible — used in medical devices and drug delivery","Biodegradable under industrial composting conditions","Opaque white when solid, translucent when warm","Zack Freedman B-tier"],"settings":["Nozzle: 65–90°C — some extruders struggle to heat only to 65°C reliably","Bed: Room temperature — no heating needed","Speed: 20–40mm/s","Note: Very tacky when molten — sticks to almost everything"],"tips":["The hand-reshapability is the unique feature — printed parts can be softened and bent to fit","Use in medical splint fabrication — print close to shape, then heat-form to patient","Some printers have difficulty hitting only 65°C reliably — use a temp tower to find printable range","Parts soften in a hot car or warm hands — not for structural applications"],"uses":["Custom orthotic splints and braces","Moldable prototypes and mockups","Arts and crafts (hand-moldable by design)","Educational demonstrations of thermoplastics","Medical device prototyping"]},{"name":"PHA","fullName":"Polyhydroxyalkanoate","category":"Eco / Bio-based","difficulty":"Intermediate","tempNozzle":"180–210°C","tempBed":"0–40°C","tempChamber":"Not required","properties":["Fully biodegradable including marine environments and home composting","Marine-degradable certification — the gold standard of eco filaments","Produced by bacterial fermentation — genuinely bio-derived and biodegradable","Requires unusually cold bed (or no heated bed) — opposite of most materials","Available from Bambu and specialty eco vendors"],"settings":["Nozzle: 185–210°C","Bed: 0–40°C — cold bed improves adhesion (counterintuitive)","Cooling: High","Speed: 30–60mm/s"],"tips":["Cold build plate is the non-obvious key setting — don't heat it","The biodegradation timeline is real — don't use for anything intended to last years","Genuinely the most environmentally responsible choice for single-use or short-lifespan parts"],"uses":["Single-use packaging and containers","Short-lifespan product prototypes","Eco-conscious displays and signage","Educational models to be composted after use"]},{"name":"rPLA / Recycled PLA","fullName":"Recycled PLA (Prusament)","category":"Eco / Bio-based","difficulty":"Beginner","tempNozzle":"190–230°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Post-industrial recycled PLA from Prusament","Prints identically to virgin PLA — essentially a drop-in replacement","Lower carbon footprint than virgin PLA production","Available in rPLA (wine-red color range) and PLA Recycled variants","Prusament maintains tight diameter tolerances even on recycled material"],"settings":["Nozzle: 195–220°C","Bed: 50–60°C — same as standard PLA"],"tips":["No special handling required — treat exactly like standard PLA"],"uses":["Any standard PLA application with environmental consciousness as a goal"]},{"name":"PETG Recycled","fullName":"Recycled PETG (Prusament)","category":"Eco / Bio-based","difficulty":"Beginner","tempNozzle":"220–250°C","tempBed":"70–85°C","tempChamber":"Not required","properties":["Post-industrial recycled PETG from Prusament","Prints identically to virgin PETG","Lower carbon footprint than virgin PETG production","Maintains Prusament's quality control standards"],"settings":["Nozzle: 230–245°C","Bed: 70–85°C — same as standard PETG"],"tips":["No special handling required — treat exactly like standard PETG"],"uses":["Any standard PETG application with environmental consciousness as a goal"]},{"name":"SimuBone","fullName":"SimuBone Synthetic Bone Filament (3DXTech)","category":"Specialty","difficulty":"Intermediate","tempNozzle":"220–250°C","tempBed":"70–85°C","tempChamber":"Not required","properties":["3DXTech filament engineered to simulate cortical bone density, porosity, and cutting resistance","Used in surgical planning, medical training, and procedure rehearsal","Density and mechanical response calibrated to match real bone","Reviewed by Zack Freedman in Part 4 of Every Single Filament"],"settings":["Nozzle: 225–248°C","Bed: 70–85°C","Speed: 30–50mm/s"],"tips":["Follow 3DXTech's published profiles closely — the mechanical simulation depends on consistent settings","Use medical imaging (CT/MRI) scans as the basis for patient-specific surgical models","Hardened nozzle recommended due to filler content"],"uses":["Patient-specific surgical planning models","Medical school anatomy training","Surgical instrument testing and evaluation","Orthopedic implant sizing and trial fitting"]},{"name":"Reflect-o-Lay","fullName":"Reflect-o-Lay Retroreflective Filament (Lay Filaments)","category":"Specialty","difficulty":"Intermediate","tempNozzle":"190–220°C","tempBed":"50–60°C","tempChamber":"Not required","properties":["Retroreflective filament — returns light directly back to its source rather than scattering","Appears dark in ambient light but blazes bright when directly illuminated by a light source","Same retroreflective principle as road signs and high-visibility safety gear","Reviewed by Zack Freedman in Part 4"],"settings":["Nozzle: 195–215°C","Bed: 50–60°C","Speed: 30–50mm/s"],"tips":["The effect is only visible when a light source is near the viewer's eye — dramatic in low-light photos","Great for safety-adjacent wearable components and cycling gear","Effect depends on the specific glass bead coating — print quality affects retroreflectivity"],"uses":["High-visibility safety accessories","Reflective bike components and mounts","Safety signage visible only when lit directly","Night photography props"]},{"name":"Pegasus HGS-25","fullName":"Hollow Glass Sphere PP (Formfutura Pegasus HGS-25)","category":"Specialty","difficulty":"Advanced","tempNozzle":"220–240°C","tempBed":"85–100°C (PP tape)","tempChamber":"Not required","properties":["Polypropylene filled with 25% hollow borosilicate glass microspheres (by volume)","Density of 0.75 g/cm³ — the lightest conventional non-foaming filament","Hollow glass spheres are both thermally insulating and structural","Exceptional thermal insulation: low thermal conductivity from air-filled spheres","Extremely fragile — prints like papier-mâché; careful design required","Available in 2.85mm gauge only (drive gear damages 1.75mm version)","Zack printed a fridge with this that kept food frozen overnight — Part 5 featured material"],"settings":["Nozzle: 225–240°C","Bed: PP tape mandatory","Speed: 20mm/s maximum — fragility requires very slow printing","Cooling: Moderate"],"tips":["The part is genuinely fragile — designed for thermal insulation, not structural use","Print with thick walls (3–4 perimeters) and high infill for any functional use","2.85mm gauge only — the filament's fragility means the thinner gauge shatters at the drive gear","Appears to be discontinued but in permanent back-order status — source when found","The thermal insulation application is real and functional — the frozen fridge test is not a gimmick"],"uses":["Thermal insulation enclosures and coolers","Ultra-lightweight non-structural components","Buoyant parts (density below water at 0.75 g/cm³)","Cryogenic insulation applications"]}];
+
+const CATS = ["Standard","Engineering","Flexible","Composites","Support Materials","High-Performance","Specialty","Eco / Bio-based"];
+const CAT_ICONS = {"Standard":"◈","Engineering":"⬡","Flexible":"◎","Composites":"◆","Support Materials":"◇","High-Performance":"▲","Specialty":"★","Eco / Bio-based":"✿"};
+
+let activeCat = 'all';
+let activeDiffs = new Set(['Beginner','Intermediate','Advanced','Expert']);
+let searchQuery = '';
+let activeCard = null;
+
+// Count per category
+const catCounts = {};
+CATS.forEach(c => { catCounts[c] = FILAMENTS.filter(f => f.category === c).length; });
+
+// Update sidebar counts
+CATS.forEach(c => {
+  const el = document.getElementById('cnt-' + c.replace(/[^a-z]/gi,'_'));
+  if (el) el.textContent = catCounts[c];
+});
+document.getElementById('cnt-all').textContent = FILAMENTS.length;
+
+function getFiltered() {
+  return FILAMENTS.filter(f => {
+    if (activeCat !== 'all' && f.category !== activeCat) return false;
+    if (!activeDiffs.has(f.difficulty)) return false;
+    if (searchQuery) {
+      const q = searchQuery.toLowerCase();
+      const haystack = [f.name, f.fullName, f.category, f.difficulty,
+        ...(f.properties||[]), ...(f.settings||[]), ...(f.tips||[]), ...(f.uses||[])
+      ].join(' ').toLowerCase();
+      if (!haystack.includes(q)) return false;
+    }
+    return true;
+  });
+}
+
+function diffClass(d) {
+  return d ? d.toLowerCase() : 'beginner';
+}
+
+function renderCard(f) {
+  const desc = (f.properties||[]).slice(0,2).join(' · ') || '';
+  const tags = (f.uses||[]).slice(0,3);
+  return `<div class="card" data-name="${f.name.replace(/"/g,'&quot;')}" onclick="openDetail('${encodeURIComponent(JSON.stringify(f)).replace(/'/g,'%27')}', this)">
+    <div class="card-top">
+      <div class="card-name">${f.name}</div>
+      <div class="card-badges"><span class="badge badge-${diffClass(f.difficulty)}">${f.difficulty}</span></div>
+    </div>
+    <div class="card-full">${f.fullName}</div>
+    <div class="card-temp">🌡 ${f.tempNozzle}</div>
+    <div class="card-desc">${desc}</div>
+    <div class="card-tags">${tags.map(t => `<span class="tag">${t}</span>`).join('')}</div>
+  </div>`;
+}
+
+function render() {
+  const filtered = getFiltered();
+  document.getElementById('count-display').textContent = filtered.length;
+
+  const grouped = {};
+  if (activeCat === 'all') {
+    CATS.forEach(c => { grouped[c] = filtered.filter(f => f.category === c); });
+  } else {
+    grouped[activeCat] = filtered;
+  }
+
+  let html = '';
+  const keys = activeCat === 'all' ? CATS : [activeCat];
+  let total = 0;
+
+  keys.forEach(cat => {
+    const items = grouped[cat] || [];
+    if (!items.length) return;
+    total += items.length;
+    if (activeCat === 'all') {
+      html += `<div class="grid"><div class="cat-group-label">${CAT_ICONS[cat]||'◈'} ${cat} <span style="color:var(--text-dim);font-weight:400">(${items.length})</span></div>${items.map(renderCard).join('')}</div>`;
+    } else {
+      html += `<div class="grid">${items.map(renderCard).join('')}</div>`;
+    }
+  });
+
+  if (total === 0) {
+    html = `<div class="grid"><div class="empty">No filaments match — try a different search or filter<br><span>Try: "aerospace", "flexible", "nozzle 400", "beginner"</span></div></div>`;
+  }
+
+  document.getElementById('results').innerHTML = html;
+}
+
+function openDetail(encodedF, cardEl) {
+  const f = JSON.parse(decodeURIComponent(encodedF));
+
+  if (activeCard) activeCard.classList.remove('active');
+  activeCard = cardEl;
+  cardEl.classList.add('active');
+
+  document.getElementById('dp-name').textContent = f.name;
+  document.getElementById('dp-fullname').textContent = f.fullName;
+
+  document.getElementById('dp-meta').innerHTML = `
+    <div class="meta-pill diff"><span class="meta-pill-label">Level</span><span class="meta-pill-val">${f.difficulty}</span></div>
+    <div class="meta-pill temp"><span class="meta-pill-label">Nozzle</span><span class="meta-pill-val">${f.tempNozzle}</span></div>
+    <div class="meta-pill temp"><span class="meta-pill-label">Bed</span><span class="meta-pill-val">${f.tempBed}</span></div>
+    <div class="meta-pill"><span class="meta-pill-label">Chamber</span><span class="meta-pill-val" style="color:var(--text-muted)">${f.tempChamber}</span></div>
+    <div class="meta-pill"><span class="meta-pill-label">Category</span><span class="meta-pill-val" style="color:var(--text-muted)">${f.category}</span></div>
+  `;
+
+  let body = '';
+
+  if (f.properties?.length) {
+    body += `<div class="detail-section">
+      <div class="detail-section-title">Properties</div>
+      <ul class="detail-list">${f.properties.map(p => `<li>${p}</li>`).join('')}</ul>
+    </div>`;
+  }
+
+  if (f.settings?.length) {
+    body += `<div class="detail-section">
+      <div class="detail-section-title">Print Settings</div>
+      <ul class="detail-list">${f.settings.map(s => `<li>${s}</li>`).join('')}</ul>
+    </div>`;
+  }
+
+  if (f.tips?.length) {
+    body += `<div class="detail-section">
+      <div class="detail-section-title">Tips & Tricks</div>
+      <ul class="detail-list tips">${f.tips.map(t => `<li>${t}</li>`).join('')}</ul>
+    </div>`;
+  }
+
+  if (f.uses?.length) {
+    body += `<div class="detail-section">
+      <div class="detail-section-title">Use Cases</div>
+      <div class="use-tags">${f.uses.map(u => `<span class="use-tag">${u}</span>`).join('')}</div>
+    </div>`;
+  }
+
+  document.getElementById('dp-body').innerHTML = body;
+
+  const panel = document.getElementById('detail-panel');
+  const overlay = document.getElementById('overlay');
+  panel.classList.add('open');
+  overlay.classList.add('show');
+  panel.scrollTop = 0;
+}
+
+function closeDetail() {
+  document.getElementById('detail-panel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('show');
+  if (activeCard) { activeCard.classList.remove('active'); activeCard = null; }
+}
+
+document.getElementById('detail-close').addEventListener('click', closeDetail);
+document.getElementById('overlay').addEventListener('click', closeDetail);
+
+// Category buttons
+document.querySelectorAll('.cat-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    activeCat = btn.dataset.cat;
+    closeDetail();
+    render();
+  });
+});
+
+// Difficulty buttons
+document.querySelectorAll('.diff-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const d = btn.dataset.diff;
+    if (activeDiffs.has(d)) {
+      if (activeDiffs.size === 1) return;
+      activeDiffs.delete(d);
+      btn.classList.remove('active');
+    } else {
+      activeDiffs.add(d);
+      btn.classList.add('active');
+    }
+    render();
+  });
+});
+
+// Search
+document.getElementById('search').addEventListener('input', e => {
+  searchQuery = e.target.value.trim();
+  render();
+});
+
+// Keyboard shortcut
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') closeDetail();
+  if (e.key === '/' && e.target !== document.getElementById('search')) {
+    e.preventDefault();
+    document.getElementById('search').focus();
+  }
+});
+
+render();
+</script>
+</body>
+</html>
